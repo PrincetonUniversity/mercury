@@ -1185,34 +1185,36 @@ c If required, calculate the changeover distance used by hybrid algorithm
       end if
 c
 c Write list of object's identities to close-encounter output file
-      header(1:8)   = mio_fl2c (tstart)
-      header(9:16)  = mio_re2c (dble(nbig - 1),   0.d0, 11239423.99d0)
-      header(12:19) = mio_re2c (dble(nbod - nbig),0.d0, 11239423.99d0)
-      header(15:22) = mio_fl2c (m(1) * k_2)
-      header(23:30) = mio_fl2c (jcen(1) * rcen_2)
-      header(31:38) = mio_fl2c (jcen(2) * rcen_2 * rcen_2)
-      header(39:46) = mio_fl2c (jcen(3) * rcen_2 * rcen_2 * rcen_2)
-      header(47:54) = mio_fl2c (rcen)
-      header(55:62) = mio_fl2c (rmax)
-c
-      do j = 2, nbod
-        c(j)(1:8) = mio_re2c (dble(j - 1), 0.d0, 11239423.99d0)
-        c(j)(4:11) = id(j)
-        c(j)(12:19) = mio_fl2c (m(j) * k_2)
-        c(j)(20:27) = mio_fl2c (s(1,j) * k_2)
-        c(j)(28:35) = mio_fl2c (s(2,j) * k_2)
-        c(j)(36:43) = mio_fl2c (s(3,j) * k_2)
-        c(j)(44:51) = mio_fl2c (rho(j) / rhocgs)
-      end do
-c
-c Write compressed output to file
-  50  open (22, file=outfile, status='old', access='append', err=50)
-      write (22,'(a1,a2,i2,a62,i1)') char(12),'6a',algor,header(1:62),
-     %  opt(4)
-      do j = 2, nbod
-        write (22,'(a51)') c(j)(1:51)
-      end do
-      close (22)
+
+c$$$  It's now commented out, what a shame, what a sham!
+c$$$      header(1:8)   = mio_fl2c (tstart)
+c$$$      header(9:16)  = mio_re2c (dble(nbig - 1),   0.d0, 11239423.99d0)
+c$$$      header(12:19) = mio_re2c (dble(nbod - nbig),0.d0, 11239423.99d0)
+c$$$      header(15:22) = mio_fl2c (m(1) * k_2)
+c$$$      header(23:30) = mio_fl2c (jcen(1) * rcen_2)
+c$$$      header(31:38) = mio_fl2c (jcen(2) * rcen_2 * rcen_2)
+c$$$      header(39:46) = mio_fl2c (jcen(3) * rcen_2 * rcen_2 * rcen_2)
+c$$$      header(47:54) = mio_fl2c (rcen)
+c$$$      header(55:62) = mio_fl2c (rmax)
+c$$$c
+c$$$      do j = 2, nbod
+c$$$        c(j)(1:8) = mio_re2c (dble(j - 1), 0.d0, 11239423.99d0)
+c$$$        c(j)(4:11) = id(j)
+c$$$        c(j)(12:19) = mio_fl2c (m(j) * k_2)
+c$$$        c(j)(20:27) = mio_fl2c (s(1,j) * k_2)
+c$$$        c(j)(28:35) = mio_fl2c (s(2,j) * k_2)
+c$$$        c(j)(36:43) = mio_fl2c (s(3,j) * k_2)
+c$$$        c(j)(44:51) = mio_fl2c (rho(j) / rhocgs)
+c$$$      end do
+c$$$c
+c$$$c Write compressed output to file
+c$$$  50  open (22, file=outfile, status='old', access='append', err=50)
+c$$$      write (22,'(a1,a2,i2,a62,i1)') char(12),'6a',algor,header(1:62),
+c$$$     %  opt(4)
+c$$$      do j = 2, nbod
+c$$$        write (22,'(a51)') c(j)(1:51)
+c$$$      end do
+c$$$      close (22)
 c
 c------------------------------------------------------------------------------
 c
