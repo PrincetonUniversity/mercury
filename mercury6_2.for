@@ -5143,14 +5143,14 @@ c
       end do
 c
 c If required, output the stored close encounter details
-      if (nstored.ge.100.or.ceflush.eq.0) then
-  10    open (22, file=outfile(2), status='old', access='append',err=10)
-        do k = 1, nstored
-          write (22,'(a1,a2,a70)') char(12),'6b',c(k)(1:70)
-        end do
-        close (22)
-        nstored = 0
-      end if
+c      if (nstored.ge.100.or.ceflush.eq.0) then
+c  10    open (22, file=outfile(2), status='old', access='append',err=10)
+c        do k = 1, nstored
+c          write (22,'(a1,a2,a70)') char(12),'6b',c(k)(1:70)
+c        end do
+c        close (22)
+c        nstored = 0
+c      end if
 c
 c If new encounter minima have occurred, decide whether to stop integration
       stopflag = 0
