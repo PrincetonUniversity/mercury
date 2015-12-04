@@ -1185,8 +1185,6 @@ c If required, calculate the changeover distance used by hybrid algorithm
       end if
 c
 c Write list of object's identities to close-encounter output file
-
-c  It's now commented out, what a shame, what a sham!
       header(1:8)   = mio_fl2c (tstart)
       header(9:16)  = mio_re2c (dble(nbig - 1),   0.d0, 11239423.99d0)
       header(12:19) = mio_re2c (dble(nbod - nbig),0.d0, 11239423.99d0)
@@ -1204,7 +1202,7 @@ c
         c(j)(20:27) = mio_fl2c (s(1,j) * k_2)
         c(j)(28:35) = mio_fl2c (s(2,j) * k_2)
         c(j)(36:43) = mio_fl2c (s(3,j) * k_2)
-       c(j)(44:51) = mio_fl2c (rho(j) / rhocgs)
+        c(j)(44:51) = mio_fl2c (rho(j) / rhocgs)
       end do
 c
 c Write compressed output to file
@@ -5145,14 +5143,14 @@ c
       end do
 c
 c If required, output the stored close encounter details
-c      if (nstored.ge.100.or.ceflush.eq.0) then
-c  10    open (22, file=outfile(2), status='old', access='append',err=10)
-c        do k = 1, nstored
-c          write (22,'(a1,a2,a70)') char(12),'6b',c(k)(1:70)
-c        end do
-c        close (22)
-c        nstored = 0
-c      end if
+      if (nstored.ge.100.or.ceflush.eq.0) then
+  10    open (22, file=outfile(2), status='old', access='append',err=10)
+        do k = 1, nstored
+          write (22,'(a1,a2,a70)') char(12),'6b',c(k)(1:70)
+        end do
+        close (22)
+        nstored = 0
+      end if
 c
 c If new encounter minima have occurred, decide whether to stop integration
       stopflag = 0
