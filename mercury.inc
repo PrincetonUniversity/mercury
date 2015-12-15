@@ -14,14 +14,28 @@ c NMESS = maximum number of messages in message.in
 c HUGE  = an implausibly large number
 c NFILES = maximum number of files that can be open at the same time
 c
+c cstar = constant from S&L, head on equal mass disruption energy 
+c         in units of specific gravitational binding energy
+c mubar = constant from S&L, velocity exponent in coupling parameter
+c rho1 = density of 1000 kg m^-3, objects' densities scale to this I think
+c G__  = Gravitational constant in cgs
+c beta = slope of fragment distribution power law
+c rho  = density used throughout, for use in mce_coll, cgs
+
       integer NMAX, CMAX, NMESS, NFILES
-      real*8 HUGE
+      real*8 HUGE, cstar, mubar, rho1, G__, beta, rho_forall
 c
       parameter (NMAX = 2000)
       parameter (CMAX = 50)
       parameter (NMESS = 200)
       parameter (HUGE = 9.9d29)
       parameter (NFILES = 50)
+      parameter (cstar = 5.0)
+      parameter (mubar = 0.37)
+      parameter (rho1 = 1.0)
+      parameter (G__ = 6.673e-8)
+      parameter (beta = 2.85)
+      parameter (rho_forall = 3.0)
 c
 c------------------------------------------------------------------------------
 c
