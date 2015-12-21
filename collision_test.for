@@ -100,9 +100,15 @@ c Local
       character*6 tstring
 c
       real*8 gamma, mtot, l_, xrel(3), vrel(3), costheta_squared
-      real*8 vrel_magnitude_squared
-      real*8 b_, alpha, M_, R_, vesc_squared, rhocgs
+      real*8 vrel_magnitude_squared, rhoforall_mercunits
+      real*8 b_, alpha, M_, R_, vesc_squared, rhocgs, bcrit
+      integer collision_type, graze
+c  -1 is central collision, 1 is perfect merger
 
+c     calculate rho in proper units, mercury units
+      rhocgs = AU * AU * AU * K2 / MSUN
+      rhoforall_mercunits = rho_forall/rhocgs
+      
 c If two bodies collided, check that the less massive one is given 
 c the larger index (unless the more massive one is a Small body)
       if (i.ne.0) then
@@ -157,50 +163,70 @@ c Now we start to perform the analysis of Leinhardt & Stewart, and Stewart & Lei
 
       if (i.eq.1) then  ! If central object
          call mce_merg (jcen,i,j,nbod,nbig,m,xh,vh,s,stat,elost)
-         goto 654 !Skip all the fragmentation nonsense that comes next
-      endif
-
-
-      rhocgs = AU * AU * AU * K2 / MSUN
-
-      gamma = m(j)/m(i) ! mass particle / mass target greater
-      mtot = m(j) + m(i) ! total mass
-
-      xrel(1) = xh(1,i) - xh(1,j)
-      xrel(2) = xh(2,i) - xh(2,j)
-      xrel(3) = xh(3,i) - xh(3,j)
-      vrel(1) = vh(1,j) - vh(1,i)
-      vrel(2) = vh(2,j) - vh(2,i)
-      vrel(3) = vh(3,j) - vh(3,i)
-      vrel_magnitude_squared = vrel(1)*vrel(1) + vrel(2)*vrel(2) + 
-     % vrel(3)*vrel(3)
-
-      costheta_squared = (xrel(1)*vrel(1) + xrel(2)*vrel(2) + xrel(3)*
-     %  vrel(3))**2 / ( (xrel(1)*xrel(1) + xrel(2)*xrel(2) + xrel(3)*
-     %  xrel(3) ) * vrel_magnitude_squared )  ! Used for next calculation
-
-      b_ = sqrt(1.0 - costheta_squared) ! Impact parameter, sin(theta)
-      l_ = (rphys(j) + rphys(i)) * (1.0 - b)! length (absolute in CGS) of projecticle that overlaps the target
-      alpha = (3.0*rphys(j)*(l_*l_) - (l_*l_*l_))/(4.0*(rphys(j)*
-     % rphys(j)*rphys(j) )) ! Intersecting mass fraction
-
-      if ( rphys(i) > (b_*(rphys(i) + rphys(j)) + rphys(j)) alpha = 1.0 !Maximum alpha
-      M_ = m(i) + alpha*m(j) !mass of target + interacting mass of projectile
-      R_ = cbrt( ((3.*M_)/(4.*PI*rho_forall/rhocgs) ) !radius that target + interacting mass would have
-      vesc_squared = 2.*K2*M_/R_ !escape velocity of target + interacting mass eq. 53
-
-      if (vrel_magnitude_squared.lt.vesc_squared) then
-      
-
-
-c Have something to know if central body collision or not.  If central
-c body, simple merge
-
-c if not central body, then more complicated
+         collision_type = -1
+c         goto 654 !Skip all the fragmentation nonsense that comes next
+c      endif
+      else
 
 
 
+        gamma = m(j)/m(i)       ! mass particle / mass target greater
+        mtot = m(j) + m(i)      ! total mass
 
+        xrel(1) = xh(1,i) - xh(1,j)
+        xrel(2) = xh(2,i) - xh(2,j)
+        xrel(3) = xh(3,i) - xh(3,j)
+        vrel(1) = vh(1,j) - vh(1,i)
+        vrel(2) = vh(2,j) - vh(2,i)
+        vrel(3) = vh(3,j) - vh(3,i)
+        vrel_magnitude_squared = vrel(1)*vrel(1) + vrel(2)*vrel(2) + 
+     %       vrel(3)*vrel(3)
+
+        costheta_squared = (xrel(1)*vrel(1) + xrel(2)*vrel(2) + xrel(3)*
+     %   vrel(3))**2 / ( (xrel(1)*xrel(1) + xrel(2)*xrel(2) + xrel(3)*
+     %   xrel(3) ) * vrel_magnitude_squared ) ! Used for next calculation
+
+        b_ = sqrt(1.0 - costheta_squared) ! Impact parameter, sin(theta)
+        l_ = (rphys(j) + rphys(i)) * (1.0 - b) ! length (absolute in CGS) of projecticle that overlaps the target
+        alpha = (3.0*rphys(j)*(l_*l_) - (l_*l_*l_))/(4.0*(rphys(j)*
+     %       rphys(j)*rphys(j) )) ! Intersecting mass fraction
+
+        if (rphys(i) > (b_*(rphys(i) + rphys(j)) + rphys(j)) alpha =1.0 !Maximum alpha
+        M_ = m(i) + alpha*m(j)  !mass of target + interacting mass of projectile
+        R_ = cbrt( ((3.*M_)/(4.*PI*rhoforall_rhocgs) ) !radius that target + interacting mass would have
+        vesc_squared = 2.*K2*M_/R_ !escape velocity of target + interacting mass eq. 53
+
+        if (vrel_magnitude_squared.lt.vesc_squared) then
+           call mce_merg (jcen,i,j,nbod,nbig,m,xh,vh,s,stat,elost)
+           collision_type = 1
+
+        else
+           bcrit = rphys(i)/(rphys(i) + rphys(j))
+
+           if (b_ < bcrit) then
+              graze = 0
+           else
+              graze = 1
+           endif
+
+           real*8 rc1,qpd,vpd,mu,muint,qrdstar,vstar
+           
+           rc1 = cbrt(3.0*mtot/(4.*PI*rho1)) !radius of all mass if rho = 1
+           qpd = cstar*4.0/5.0*PI*rhoforall_rhocgs*K2*rc1*rc1 !eq. 28, specific
+c           ! impact energy when mt=mp
+           vpd = sqrt(32.PI*cstar*rhoforall_rhocgs*K2/5.)*rc1 !eq. 30, vel version of above
+           mu  = (m(i) * m(j) / mtot) ! reduced mass
+           muint = alpha*m(i)*m(j)/(m(i) + alpha*m(j))
+
+           qrdstar = qpd*(   (((gamma+1.0)*(gamma+1.0))/(4.0*
+     %          gamma))**(2.0/(3.0*mubar)-1.0)   )
+c           eq. 23, specific impact energy-catastrophic disruption threshold
+           vstar = vpd*(    (((gamma+1.0)*(gamma+1.0))/(4.0*
+     %          gamma))***(1.0/(3.0*mubar))    )
+c           eq. 22, velocity at catastrophic disruption threshold
+           
+        end if ! this if is checking if perfect merger
+      end if ! This if is checking if central object
  654  continue
 
       return
