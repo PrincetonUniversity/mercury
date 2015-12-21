@@ -103,7 +103,8 @@ c
       real*8 vrel_magnitude_squared, rhoforall_mercunits
       real*8 b_, alpha, M_, R_, vesc_squared, rhocgs, bcrit
       integer collision_type, graze
-c  -1 is central collision, 1 is perfect merger
+c     -1 is central collision, 1 is perfect merger, 2 is hit & run
+c 3 is supercatastrophic disruption, 4 is erosive disruption, 5 is partial accretion
 
 c     calculate rho in proper units, mercury units
       rhocgs = AU * AU * AU * K2 / MSUN
@@ -209,7 +210,8 @@ c      endif
               graze = 1
            endif
 
-           real*8 rc1,qpd,vpd,mu,muint,qrdstar,vstar
+           real*8 rc1,qpd,vpd,mu,muint,qrdstar,vstar,qrdstarprime
+           real*8 vstarprime,qrer,ver_squred,qsupercat,vsupercat_squred
            
            rc1 = cbrt(3.0*mtot/(4.*PI*rho1)) !radius of all mass if rho = 1
            qpd = cstar*4.0/5.0*PI*rhoforall_rhocgs*K2*rc1*rc1 !eq. 28, specific
@@ -223,7 +225,39 @@ c           ! impact energy when mt=mp
 c           eq. 23, specific impact energy-catastrophic disruption threshold
            vstar = vpd*(    (((gamma+1.0)*(gamma+1.0))/(4.0*
      %          gamma))***(1.0/(3.0*mubar))    )
-c           eq. 22, velocity at catastrophic disruption threshold
+c     eq. 22, velocity at catastrophic disruption threshold
+
+           qrdstarprime = qrdstar* (mu/muint)**(2.-(1.5*mubar))
+c eq. 15, specific impact energy at catastrophic disruption threshold for oblique (b>0) impacts
+           vstarprime = sqrt(2.*qrdstarprime*mtot/mu)
+c     eq. 16, impact velocity at catastrophic disruption threshold for oblique (b>0) impacts
+
+           qrer = qrdstarprime*((-2.*mt/mtot)+2.0)
+c  eq. 5(rearranged), specific impact energy at erosion threshold
+           ver_squred = 2.0*qrer*mtot/mu
+c     eq. 1(rearranged), velocity at erosion threshold
+
+           if (graze.eq.1.and.vrel_magnitude_squared.lt.ver_squred) then
+c     In this case, hit and run regime. Target intact but projectile may be disrupted
+              collision_number = 2
+
+           else  ! If not hit and run regime
+              qsupercat = 1.8*qrdstarprime ! super-cat specific impact energy
+              vsupercat_squred = 2.0*qsupercat*mtot/mu ! super-cat impact velocity
+
+              if (vrel_magnitude_squred.gt.ver_squred) then
+                 if (vrel_magnitude_squred.gt.vsupercat_squred) then
+                    collision_number = 3
+                 else
+                    collision_number = 4
+                 end if         ! this if is checking erosion case, supercat or not
+                 
+              else
+                 collision_number = 5 ! partial accretion
+
+              end if ! this if is checking if erosion regime or not
+              
+           end if ! this if is checking hit and run
            
         end if ! this if is checking if perfect merger
       end if ! This if is checking if central object
