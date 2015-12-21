@@ -15,11 +15,12 @@ c First the main loop
       implicit none
       include 'mercury.inc'
 
-      integer j,algor,nbod,nbig,opt(8),stat(NMAX),lmem(NMESS)
+      integer j,algor,nbod,nbig,opt(8),stat(NMAX),lmem(NMESS),k
       integer opflag,ngflag,ndump,nfun
       real*8 m(NMAX),xh(3,NMAX),vh(3,NMAX),s(3,NMAX),rho(NMAX)
       real*8 rceh(NMAX),epoch(NMAX),ngf(4,NMAX),rmax,rcen,jcen(3)
       real*8 cefac,time,tstart,tstop,dtout,h0,tol,en(3),am(3)
+      real*8 rphys(NMAX)
       character*8 id(NMAX)
       character*80 outfile(3), dumpfile(4), mem(NMESS)
       external mdt_mvs, mdt_bs1, mdt_bs2, mdt_ra15, mdt_hy
@@ -28,6 +29,46 @@ c First the main loop
 c
       data opt/1,2,3,2,0,1,0,0/
 
+c     central object
+      m(1) = 0.1
+      vh(1,1) = 0.
+      vh(2,1) = 0.
+      vh(3,1) = 0.
+      xh(1,1) = 0.
+      xh(2,1) = 0.
+      xh(3,1) = 0.
+      rcen = 0.001
+
+      nbod = 20
+      nbig = nbod
+      do k=2,nbig
+         m(k) = 1.0E-5
+      end do
+
+      do k=2,nbig
+         xh(1,k) = 0.1 + k*0.001
+         xh(2,k) = 0.1 + k*0.001
+         xh(3,k) = 0.1 + k*0.001
+         vh(1,k) = 0.
+         vh(2,k) = 0.
+         vh(3,k) = 0.
+         id(k) = char(k-1)
+      end do
+
+
+c Lets' test a basic merger.  Two objects nearly on top of each other, no relative vel
+
+      xh(1,3) = xh(1,2)
+      xh(2,3) = xh(2,2)
+      xh(3,3) = xh(3,2) + 1.0E-8
+
+      vh(1,3) = vh(1,2)
+      vh(2,3) = vh(2,2)
+      vh(3,3) = vh(3,2) 
+
+      mce_coll_frag(time,tstart,elost,jcen,i,j,nbod,nbig,
+     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfile,coltype_num)
+      
       stop
       end
 
@@ -80,14 +121,14 @@ c   ### arrays can be passed
 c this function is called in a loop from do k=1, nhit
 
 
-      subroutine mce_coll_frag (time,tstart,elost,jcen,i,j,nbod,nbig,
-     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfile)
+      subroutine mce_coll_frag (0.,0.,0.,0.,2,3,nbod,nbig,
+     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfile,coltype_num)
 
       implicit none
       include 'mercury.inc'
 
 c Input/Output
-      integer i,j,nbod,nbig,stat(nbod),opt(8),lmem(NMESS)
+      integer i,j,nbod,nbig,stat(nbod),opt(8),lmem(NMESS),coltype_num
       real*8 time,tstart,elost,jcen(3)
       real*8 m(nbod),xh(3,nbod),vh(3,nbod),s(3,nbod),rphys(nbod)
       character*80 outfile,mem(NMESS)
@@ -262,6 +303,7 @@ c     In this case, hit and run regime. Target intact but projectile may be disr
       end if ! This if is checking if central object
  654  continue
 
+      coltype_num = collision_type
       return
       end
 
@@ -704,3 +746,35 @@ c------------------------------------------------------------------------------
 c
       return
       end
+
+
+c
+c
+c    calculate the physical radii of all the objects
+      subroutine phys_radii(nbod,rphys,m,rho)
+
+      integer nbod
+      real*8 rphys(nbod),m(nbod),rho(nbod)
+
+      do k=2, nbod
+         rphys(k) = (3.*m(k)/(4.*PI*rho(k)))**(1./3.)
+
+      return
+
+
+      subroutine int_checker(inttocheck,inttocheckagainst,numberoftests,
+     % numberofsuccess,testname)
+
+      integer inttocheck,inttocheckagainst,numberoftests,numberofsuccess
+      character*100 testname
+
+      if (inttocheck.eq.inttocheckagainst) then
+         numberoftests = numberoftests + 1
+         numberofsuccess = numberofsuccess + 1
+      else
+         numberoftests = numberoftests + 1
+         write(*,*) "*****Failed test! Name: ", testname
+         write(*,*) "    ",inttocheck," is not ", inttocheckagainst
+
+
+      return
