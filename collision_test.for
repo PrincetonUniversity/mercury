@@ -196,7 +196,7 @@ c      endif
 
         if (rphys(i).gt.(b_*(rphys(i)+rphys(j) ) +rphys(j)) ) alpha=1.0 !Maximum alpha
         M_ = m(i) + alpha*m(j)  !mass of target + interacting mass of projectile
-        R_ = ( (3.*M_)/(4.*PI*rhoforall/rhocgs) )**(1./3.) !radius that target + interacting mass would have
+        R_ = ( (3.*M_)/(4.*PI*rhoforall_mercunits) )**(1./3.) !radius that target + interacting mass would have
         vesc_squared = 2.*K2*M_/R_ !escape velocity of target + interacting mass eq. 53
 
         if (vrel_magnitude_squared.lt.vesc_squared) then
@@ -213,9 +213,9 @@ c      endif
            endif
            
            rc1 = (3.0*mtot/(4.*PI*rho1))**(1./3.) !radius of all mass if rho = 1
-           qpd = cstar*4.0/5.0*PI*rhoforall_rhocgs*K2*rc1*rc1 !eq. 28, specific
+           qpd = cstar*4.0/5.0*PI*rhoforall_mercunits*K2*rc1*rc1 !eq. 28, specific
 c           ! impact energy when mt=mp
-           vpd = sqrt(32.*PI*cstar*rhoforall_rhocgs*K2/5.)*rc1 !eq. 30, vel version of above
+           vpd = sqrt(32.*PI*cstar*rhoforall_mercunits*K2/5.)*rc1 !eq. 30, vel version of above
            mu  = (m(i) * m(j) / mtot) ! reduced mass
            muint = alpha*m(i)*m(j)/(m(i) + alpha*m(j))
 
