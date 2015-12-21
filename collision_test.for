@@ -17,12 +17,14 @@ c First the main loop
 
       integer j,algor,nbod,nbig,opt(8),stat(NMAX),lmem(NMESS),k
       integer opflag,ngflag,ndump,nfun
+      integer coltype_num, num_tests, num_success
       real*8 m(NMAX),xh(3,NMAX),vh(3,NMAX),s(3,NMAX),rho(NMAX)
       real*8 rceh(NMAX),epoch(NMAX),ngf(4,NMAX),rmax,rcen,jcen(3)
       real*8 cefac,time,tstart,tstop,dtout,h0,tol,en(3),am(3)
-      real*8 rphys(NMAX)
+      real*8 rphys(NMAX), elost
       character*8 id(NMAX)
       character*80 outfile(3), dumpfile(4), mem(NMESS)
+      character*80 outfilename
       external mdt_mvs, mdt_bs1, mdt_bs2, mdt_ra15, mdt_hy
       external mco_dh2h,mco_h2dh
       external mco_b2h,mco_h2b,mco_h2mvs,mco_mvs2h,mco_iden
@@ -49,7 +51,7 @@ c     central object
          xh(1,k) = 0.1 + k*0.001
          xh(2,k) = 0.1 + k*0.001
          xh(3,k) = 0.1 + k*0.001
-         vh(1,k) = 0.
+         vh(1,k) = 1.0E-19
          vh(2,k) = 0.
          vh(3,k) = 0.
          id(k) = char(k-1)
@@ -66,9 +68,42 @@ c Lets' test a basic merger.  Two objects nearly on top of each other, no relati
       vh(2,3) = vh(2,2)
       vh(3,3) = vh(3,2) 
 
-      mce_coll_frag(time,tstart,elost,jcen,i,j,nbod,nbig,
-     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfile,coltype_num)
+      call phys_radii(nbod,rphys,m,rho_forall)
+
+      outfilename = "testing_output.candel.txt"
       
+      write(*,*)  "Beginning testing..."
+
+      call mce_coll_frag(0.,0.,elost,0.,1,3,nbod,nbig,
+     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
+
+
+      call int_checker(coltype_num,-1,num_tests,
+     %     num_success,"collision with central object")
+
+      call mce_coll_frag(0.,0.,elost,0.,2,3,nbod,nbig,
+     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
+
+
+      call int_checker(coltype_num,1,num_tests,
+     %     num_success,"basic merger")
+      
+      write(*,*)  "   "
+      write(*,*)  "**************************************"
+      write(*,*)  "*********   Test results   ***********"
+
+      if (num_success.eq.num_tests) then
+         write(*,*) "   all passed, no problems!"
+      else
+         write(*,*) "   Warning! ###"
+         write(*,*) " Failed ", num_tests - num_success, 
+     %   " tests of ", num_tests, " total."
+         write(*,*) "   "
+         write(*,*) "Reminder: -1 central collision, 1 perfect merger"
+         write(*,*) "2 hit & run, 3 supercatastrophic disruption"
+         write(*,*) "4 is erosive disruption, 5 is partial accretion"
+      end if
+
       stop
       end
 
@@ -121,7 +156,7 @@ c   ### arrays can be passed
 c this function is called in a loop from do k=1, nhit
 
 
-      subroutine mce_coll_frag (0.,0.,0.,0.,2,3,nbod,nbig,
+      subroutine mce_coll_frag (time,tstart,elost,jcen,i,j,nbod,nbig,
      %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfile,coltype_num)
 
       implicit none
@@ -145,7 +180,7 @@ c
       real*8 b_, alpha, M_, R_, vesc_squared, rhocgs, bcrit
       real*8 rc1,qpd,vpd,mu,muint,qrdstar,vstar,qrdstarprime
       real*8 vstarprime,qrer,ver_squred,qsupercat,vsupercat_squred
-      integer collision_type, graze
+      integer collision_type, graze, filestatus
 c     -1 is central collision, 1 is perfect merger, 2 is hit & run
 c 3 is supercatastrophic disruption, 4 is erosive disruption, 5 is partial accretion
 
@@ -153,6 +188,8 @@ c     calculate rho in proper units, mercury units
       rhocgs = AU * AU * AU * K2 / MSUN
       rhoforall_mercunits = rho_forall/rhocgs
       
+
+
 c If two bodies collided, check that the less massive one is given 
 c the larger index (unless the more massive one is a Small body)
       if (i.ne.0) then
@@ -163,12 +200,16 @@ c the larger index (unless the more massive one is a Small body)
         end if
       end if
       
+
 c  Write message to info file (I=0 implies collision with the central body)
 c    Hey, I could add my own output to ce.out here!!!  And remove
 c    the other output
- 10   open (23, file=outfile, status='old', access='append', err=10)
+ 10   open (23, file=outfile, status='old', access='append', 
+     %  iostat = filestatus, err=10)
+c 11   write(*,*) "cant open file, error code ", filestatus
 c
       if (opt(3).eq.1) then
+
         call mio_jd2y (time,year,month,t1)
         if (i.eq.0) then ! lost to the outer reaches of space
           flost = '(1x,a8,a,i10,1x,i2,1x,f8.5)'
@@ -202,7 +243,6 @@ c  mem(69) = 'was hit by', mem(71) = 'at'
       end if
       close (23)
 
-
 c Now we start to perform the analysis of Leinhardt & Stewart, and Stewart & Leinhardt
 
       if (i.eq.1) then  ! If central object
@@ -211,8 +251,6 @@ c Now we start to perform the analysis of Leinhardt & Stewart, and Stewart & Lei
 c         goto 654 !Skip all the fragmentation nonsense that comes next
 c      endif
       else
-
-
 
         gamma = m(j)/m(i)       ! mass particle / mass target greater
         mtot = m(j) + m(i)      ! total mass
@@ -225,6 +263,11 @@ c      endif
         vrel(3) = vh(3,j) - vh(3,i)
         vrel_magnitude_squared = vrel(1)*vrel(1) + vrel(2)*vrel(2) + 
      %       vrel(3)*vrel(3)
+
+        if (vrel_magnitude_squared.eq.(0.0)) then
+           write(*,*) "Somehow, the relative velocity is zero!"
+           stop 987
+        end if
 
         costheta_squared = (xrel(1)*vrel(1) + xrel(2)*vrel(2) + xrel(3)*
      %   vrel(3))**2 / ( (xrel(1)*xrel(1) + xrel(2)*xrel(2) + xrel(3)*
@@ -239,7 +282,6 @@ c      endif
         M_ = m(i) + alpha*m(j)  !mass of target + interacting mass of projectile
         R_ = ( (3.*M_)/(4.*PI*rhoforall_mercunits) )**(1./3.) !radius that target + interacting mass would have
         vesc_squared = 2.*K2*M_/R_ !escape velocity of target + interacting mass eq. 53
-
         if (vrel_magnitude_squared.lt.vesc_squared) then
            call mce_merg (jcen,i,j,nbod,nbig,m,xh,vh,s,stat,elost)
            collision_type = 1
@@ -302,7 +344,6 @@ c     In this case, hit and run regime. Target intact but projectile may be disr
         end if ! this if is checking if perfect merger
       end if ! This if is checking if central object
  654  continue
-
       coltype_num = collision_type
       return
       end
@@ -753,17 +794,33 @@ c
 c    calculate the physical radii of all the objects
       subroutine phys_radii(nbod,rphys,m,rho)
 
+      implicit none
+      include 'mercury.inc'
+
       integer nbod
       real*8 rphys(nbod),m(nbod),rho(nbod)
+      integer k ! local
 
       do k=2, nbod
          rphys(k) = (3.*m(k)/(4.*PI*rho(k)))**(1./3.)
+      end do
 
       return
+      end
+
+c
+c
+c
+c
+c
+c       For the checker test, the function that does the checking
+c
 
 
       subroutine int_checker(inttocheck,inttocheckagainst,numberoftests,
      % numberofsuccess,testname)
+
+      implicit none
 
       integer inttocheck,inttocheckagainst,numberoftests,numberofsuccess
       character*100 testname
@@ -773,8 +830,10 @@ c    calculate the physical radii of all the objects
          numberofsuccess = numberofsuccess + 1
       else
          numberoftests = numberoftests + 1
-         write(*,*) "*****Failed test! Name: ", testname
+         write(*,*) "*****  Failed test! Name: ", testname, "    "
+         write(*,*) "--------"
          write(*,*) "    ",inttocheck," is not ", inttocheckagainst
-
+      end if
 
       return
+      end
