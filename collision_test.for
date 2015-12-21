@@ -102,6 +102,8 @@ c
       real*8 gamma, mtot, l_, xrel(3), vrel(3), costheta_squared
       real*8 vrel_magnitude_squared, rhoforall_mercunits
       real*8 b_, alpha, M_, R_, vesc_squared, rhocgs, bcrit
+      real*8 rc1,qpd,vpd,mu,muint,qrdstar,vstar,qrdstarprime
+      real*8 vstarprime,qrer,ver_squred,qsupercat,vsupercat_squred
       integer collision_type, graze
 c     -1 is central collision, 1 is perfect merger, 2 is hit & run
 c 3 is supercatastrophic disruption, 4 is erosive disruption, 5 is partial accretion
@@ -188,13 +190,13 @@ c      endif
      %   xrel(3) ) * vrel_magnitude_squared ) ! Used for next calculation
 
         b_ = sqrt(1.0 - costheta_squared) ! Impact parameter, sin(theta)
-        l_ = (rphys(j) + rphys(i)) * (1.0 - b) ! length (absolute in CGS) of projecticle that overlaps the target
+        l_ = (rphys(j) + rphys(i)) * (1.0 - b_) ! length (absolute in CGS) of projecticle that overlaps the target
         alpha = (3.0*rphys(j)*(l_*l_) - (l_*l_*l_))/(4.0*(rphys(j)*
      %       rphys(j)*rphys(j) )) ! Intersecting mass fraction
 
-        if (rphys(i) > (b_*(rphys(i) + rphys(j)) + rphys(j)) alpha =1.0 !Maximum alpha
+        if (rphys(i).gt.(b_*(rphys(i) + rphys(j) ) + rphys(j))  ) alpha =1.0 !Maximum alpha
         M_ = m(i) + alpha*m(j)  !mass of target + interacting mass of projectile
-        R_ = cbrt( ((3.*M_)/(4.*PI*rhoforall_rhocgs) ) !radius that target + interacting mass would have
+        R_ = cbrt( (3.*M_)/(4.*PI*rhoforall_rhocgs) ) !radius that target + interacting mass would have
         vesc_squared = 2.*K2*M_/R_ !escape velocity of target + interacting mass eq. 53
 
         if (vrel_magnitude_squared.lt.vesc_squared) then
@@ -209,14 +211,11 @@ c      endif
            else
               graze = 1
            endif
-
-           real*8 rc1,qpd,vpd,mu,muint,qrdstar,vstar,qrdstarprime
-           real*8 vstarprime,qrer,ver_squred,qsupercat,vsupercat_squred
            
            rc1 = cbrt(3.0*mtot/(4.*PI*rho1)) !radius of all mass if rho = 1
            qpd = cstar*4.0/5.0*PI*rhoforall_rhocgs*K2*rc1*rc1 !eq. 28, specific
 c           ! impact energy when mt=mp
-           vpd = sqrt(32.PI*cstar*rhoforall_rhocgs*K2/5.)*rc1 !eq. 30, vel version of above
+           vpd = sqrt(32.*PI*cstar*rhoforall_rhocgs*K2/5.)*rc1 !eq. 30, vel version of above
            mu  = (m(i) * m(j) / mtot) ! reduced mass
            muint = alpha*m(i)*m(j)/(m(i) + alpha*m(j))
 
@@ -224,7 +223,7 @@ c           ! impact energy when mt=mp
      %          gamma))**(2.0/(3.0*mubar)-1.0)   )
 c           eq. 23, specific impact energy-catastrophic disruption threshold
            vstar = vpd*(    (((gamma+1.0)*(gamma+1.0))/(4.0*
-     %          gamma))***(1.0/(3.0*mubar))    )
+     %          gamma))**(1.0/(3.0*mubar))    )
 c     eq. 22, velocity at catastrophic disruption threshold
 
            qrdstarprime = qrdstar* (mu/muint)**(2.-(1.5*mubar))
@@ -232,14 +231,14 @@ c eq. 15, specific impact energy at catastrophic disruption threshold for obliqu
            vstarprime = sqrt(2.*qrdstarprime*mtot/mu)
 c     eq. 16, impact velocity at catastrophic disruption threshold for oblique (b>0) impacts
 
-           qrer = qrdstarprime*((-2.*mt/mtot)+2.0)
+           qrer = qrdstarprime*((-2.*m(i)/mtot)+2.0)
 c  eq. 5(rearranged), specific impact energy at erosion threshold
            ver_squred = 2.0*qrer*mtot/mu
 c     eq. 1(rearranged), velocity at erosion threshold
 
            if (graze.eq.1.and.vrel_magnitude_squared.lt.ver_squred) then
 c     In this case, hit and run regime. Target intact but projectile may be disrupted
-              collision_number = 2
+              collision_type = 2
 
            else  ! If not hit and run regime
               qsupercat = 1.8*qrdstarprime ! super-cat specific impact energy
@@ -247,13 +246,13 @@ c     In this case, hit and run regime. Target intact but projectile may be disr
 
               if (vrel_magnitude_squred.gt.ver_squred) then
                  if (vrel_magnitude_squred.gt.vsupercat_squred) then
-                    collision_number = 3
+                    collision_type = 3
                  else
-                    collision_number = 4
+                    collision_type = 4
                  end if         ! this if is checking erosion case, supercat or not
                  
               else
-                 collision_number = 5 ! partial accretion
+                 collision_type = 5 ! partial accretion
 
               end if ! this if is checking if erosion regime or not
               
