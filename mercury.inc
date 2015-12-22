@@ -23,7 +23,7 @@ c beta = slope of fragment distribution power law
 c rho  = density used throughout, for use in mce_coll, cgs
 
       integer NMAX, CMAX, NMESS, NFILES
-      real*8 HUGE, cstar, mubar, rho1, G__, beta, rho_forall
+      real*8 HUGE, cstar, mubar, rho1_cgs, G__, beta, rho_forall
 c
       parameter (NMAX = 2000)
       parameter (CMAX = 50)
@@ -32,7 +32,7 @@ c
       parameter (NFILES = 50)
       parameter (cstar = 5.0)
       parameter (mubar = 0.37)
-      parameter (rho1 = 1.0)
+      parameter (rho1_cgs = 1.0)
       parameter (G__ = 6.673e-8)
       parameter (beta = 2.85)
       parameter (rho_forall = 3.0)

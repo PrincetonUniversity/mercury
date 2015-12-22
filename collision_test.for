@@ -84,13 +84,14 @@ c Lets' test a basic merger.  Two objects nearly on top of each other, no relati
       
       write(*,"(A20)")  "Beginning testing..."
 
+      write(*,"(A30)") "---------------------------"
       call mce_coll_frag(0.,0.,elost,0.,1,3,nbod,nbig,
      %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
       testname = "collision with central object"
       call int_checker(coltype_num,-1,num_tests,
      %     num_success,testname)
 
-
+      write(*,"(A30)") "---------------------------"
       call mce_coll_frag(0.,0.,elost,0.,2,3,nbod,nbig,
      %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
       testname = "basicmerger"
@@ -109,6 +110,7 @@ c Lets' test a basic merger.  Two objects nearly on top of each other, no relati
 
       call phys_radii(nbod,rphys,m,rho_forall*( AU * AU * AU  / MSUN))
 
+      write(*,"(A30)") "---------------------------"
       call mce_coll_frag(0.,0.,elost,0.,4,5,nbod,nbig,
      %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
       testname = "hit and run"
@@ -119,6 +121,7 @@ c Lets' test a basic merger.  Two objects nearly on top of each other, no relati
       xh(2,4) = xh(2,5) - 3.0E-7
       xh(3,4) = xh(3,5)
 
+      write(*,"(A30)") "---------------------------"
       call mce_coll_frag(0.,0.,elost,0.,4,5,nbod,nbig,
      %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
       testname = "partial accretion"
@@ -136,13 +139,77 @@ c Lets' test a basic merger.  Two objects nearly on top of each other, no relati
 
       call phys_radii(nbod,rphys,m,rho_forall*( AU * AU * AU  / MSUN))
 
-      write(*,"(A20,E20.7, E15.7)") "  phys radii: ", rphys(4), m(4)
+c      write(*,"(A20,E20.7, E15.7)") "  phys radii: ", rphys(4), m(4)
 
+      write(*,"(A30)") "---------------------------"
       call mce_coll_frag(0.,0.,elost,0.,4,5,nbod,nbig,
      %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
       testname = "supercatastrophic"
       call int_checker(coltype_num,3,num_tests,
      %     num_success,testname)
+
+      vh(1,4) = 0.01477548327 ! AU/day
+      vh(1,5) = 0.0
+      xh(1,4) = xh(1,5) - 1.35E-5
+      xh(2,4) = xh(2,5) - 1.0E-5
+      xh(3,4) = xh(3,5)
+
+      write(*,"(A30)") "---------------------------"
+      call mce_coll_frag(0.,0.,elost,0.,4,5,nbod,nbig,
+     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
+      testname = "erosive disruption"
+      call int_checker(coltype_num,4,num_tests,
+     %     num_success,testname)
+
+      vh(1,4) = 0.01377548327 ! AU/day
+
+      write(*,"(A30)") "---------------------------"
+      call mce_coll_frag(0.,0.,elost,0.,4,5,nbod,nbig,
+     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
+      testname = "partial accretion"
+      call int_checker(coltype_num,5,num_tests,
+     %     num_success,testname)
+
+      vh(1,4) = 0.01507548327 ! AU/day
+      vh(1,5) = 0.0
+      xh(1,4) = xh(1,5) - 1.245E-5
+
+      write(*,"(A30)") "---------------------------"
+      call mce_coll_frag(0.,0.,elost,0.,4,5,nbod,nbig,
+     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
+      testname = "partial accretion, triple point"
+      call int_checker(coltype_num,5,num_tests,
+     %     num_success,testname)
+
+      xh(1,4) = xh(1,5) - 1.210E-5
+
+      write(*,"(A30)") "---------------------------"
+      call mce_coll_frag(0.,0.,elost,0.,4,5,nbod,nbig,
+     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
+      testname = "hit and run, triple point"
+      call int_checker(coltype_num,2,num_tests,
+     %     num_success,testname)
+
+      vh(1,4) = 0.01597548327 ! AU/day
+
+      write(*,"(A30)") "---------------------------"
+      call mce_coll_frag(0.,0.,elost,0.,4,5,nbod,nbig,
+     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
+      testname = "erosive disruption, triple point"
+      call int_checker(coltype_num,4,num_tests,
+     %     num_success,testname)
+
+      vh(1,4) = 0.0371 ! AU/day
+
+      write(*,"(A30)") "---------------------------"
+      call mce_coll_frag(0.,0.,elost,0.,4,5,nbod,nbig,
+     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
+      testname = "supercat, close to boundary"
+      call int_checker(coltype_num,3,num_tests,
+     %     num_success,testname)
+
+
+
 
       write(*,"(A3)")  "   "
       write(*,"(A39)")  "************************************** "
@@ -236,6 +303,7 @@ c
       real*8 b_, alpha, M_, R_, vesc_squared, rhocgs, bcrit
       real*8 rc1,qpd,vpd,mu,muint,qrdstar,vstar,qrdstarprime
       real*8 vstarprime,qrer,ver_squred,qsupercat,vsupercat_squred
+      real*8 rho1
       integer collision_type, graze, filestatus
 c     -1 is central collision, 1 is perfect merger, 2 is hit & run
 c     3 is supercatastrophic disruption, 4 is erosive disruption, 5 is partial accretion
@@ -245,6 +313,9 @@ c     3 is supercatastrophic disruption, 4 is erosive disruption, 5 is partial a
 c     calculate rho in proper units, mercury units
       rhocgs = AU * AU * AU  / MSUN
       rhoforall_mercunits = rho_forall * rhocgs
+
+c     rho1 also needs to be put into correct unit
+      rho1 = rho1_cgs * rhocgs
       
 
 
@@ -311,11 +382,11 @@ c      endif
       else
 
         gamma = m(j)/m(i)       ! mass particle / mass target greater
-        mtot = (m(j) + m(i)) * MSUN ! total mass
-        m_target = m(i) * MSUN
-        m_proj = m(j) * MSUN
-        r_target = rphys(i) * AU
-        r_proj = rphys(j) * AU
+        mtot = (m(j) + m(i)) !* MSUN ! total mass
+c        m_target = m(i) * MSUN
+c        m_proj = m(j) * MSUN
+c        r_target = rphys(i) * AU
+c        r_proj = rphys(j) * AU
 
 c        write(*,"(ES14.7E2)") m_target
 c        write(*,"(ES14.7E2)") m_proj
@@ -323,12 +394,12 @@ c        write(*,"(ES14.7E2)") r_target
 c        write(*,"(ES14.7E2)") r_proj
 
 
-        xrel(1) = (xh(1,j) - xh(1,i))*AU
-        xrel(2) = (xh(2,j) - xh(2,i))*AU
-        xrel(3) = (xh(3,j) - xh(3,i))*AU
-        vrel(1) = (vh(1,j) - vh(1,i))*AU/(24.0*3600.0)
-        vrel(2) = (vh(2,j) - vh(2,i))*AU/(24.0*3600.0)
-        vrel(3) = (vh(3,j) - vh(3,i))*AU/(24.0*3600.0)
+        xrel(1) = (xh(1,j) - xh(1,i))!*AU
+        xrel(2) = (xh(2,j) - xh(2,i))!*AU
+        xrel(3) = (xh(3,j) - xh(3,i))!*AU
+        vrel(1) = (vh(1,j) - vh(1,i))!*AU/(24.0*3600.0)
+        vrel(2) = (vh(2,j) - vh(2,i))!*AU/(24.0*3600.0)
+        vrel(3) = (vh(3,j) - vh(3,i))!*AU/(24.0*3600.0)
         vrel_magnitude_squared = vrel(1)*vrel(1) + vrel(2)*vrel(2) + 
      %       vrel(3)*vrel(3)
 
@@ -342,22 +413,23 @@ c        write(*,"(ES14.7E2)") r_proj
      %   xrel(3) ) * vrel_magnitude_squared ) ! Used for next calculation
 
         b_ = sqrt(1.0 - costheta_squared) ! Impact parameter, sin(theta)
-        write(*,"(A6,F8.6)") "  b_: ", b_
-        l_ = (r_target + r_proj) * (1.0 - b_) ! length (absolute in CGS) of projecticle that overlaps the target
-        alpha = (3.0*r_proj*(l_*l_) - (l_*l_*l_))/(4.0*(r_proj*
-     %       r_proj*r_proj )) ! Intersecting mass fraction
+c        write(*,"(A6,F8.6)") "  b_: ", b_
+        l_ = (rphys(i) + rphys(j)) * (1.0 - b_) ! length (absolute in CGS) of projecticle that overlaps the target
+        alpha = (3.0*rphys(j)*(l_*l_) - (l_*l_*l_))/(4.0*(rphys(j)*
+     %       rphys(j)*rphys(j) )) ! Intersecting mass fraction
 
         if (rphys(i).gt.(b_*(rphys(i)+rphys(j) ) +rphys(j)) ) alpha=1.0 !Maximum alpha
-        M_ = m_target + alpha*m_proj  !mass of target + interacting mass of projectile
-        R_ = ( (3.*M_)/(4.*PI*rho_forall) )**(1./3.) !radius that target + interacting mass would have
-        vesc_squared = 2.*G__*M_/R_ !escape velocity of target + interacting mass eq. 53
-        write(*,"(A6,F12.1)") "Vesc: ", sqrt(vesc_squared)
+        M_ = m(i) + alpha*m(j)  !mass of target + interacting mass of projectile
+        R_ = ( (3.*M_)/(4.*PI*rhoforall_mercunits) )**(1./3.) !radius that target + interacting mass would have
+        vesc_squared = 2.*K2*M_/R_ !escape velocity of target + interacting mass eq. 53
+        write(*,"(A6,F12.1)") "Vesc: ",
+     %   sqrt(vesc_squared)*AU/(24.0*3600.0)
         if (vrel_magnitude_squared.lt.vesc_squared) then
            call mce_merg (jcen,i,j,nbod,nbig,m,xh,vh,s,stat,elost)
            collision_type = 1
 
         else
-           bcrit = r_target/(r_target + r_proj)
+           bcrit = rphys(i)/(rphys(i) + rphys(j))
 
            if (b_ < bcrit) then
               graze = 0
@@ -367,11 +439,11 @@ c        write(*,"(ES14.7E2)") r_proj
            write(*,"(I3)") graze
            
            rc1 = (3.0*mtot/(4.*PI*rho1))**(1./3.) !radius of all mass if rho = 1
-           qpd = cstar*4.0/5.0*PI*rho1*G__*rc1*rc1 !eq. 28, specific
+           qpd = cstar*4.0/5.0*PI*rho1*K2*rc1*rc1 !eq. 28, specific
 c           ! impact energy when mt=mp
-           vpd = sqrt(32.*PI*cstar*rho1*G__/5.)*rc1 !eq. 30, vel version of above
-           mu  = (m_target * m_proj / mtot) ! reduced mass
-           muint = alpha*m_target*m_proj/(m_target + alpha*m_proj)
+           vpd = sqrt(32.*PI*cstar*rho1*K2/5.)*rc1 !eq. 30, vel version of above
+           mu  = (m(i) * m(j) / mtot) ! reduced mass
+           muint = alpha*m(i)*m(j)/(m(i) + alpha*m(j))
 
            qrdstar = qpd*(   (((gamma+1.0)*(gamma+1.0))/(4.0*
      %          gamma))**(2.0/(3.0*mubar)-1.0)   )
@@ -385,7 +457,7 @@ c eq. 15, specific impact energy at catastrophic disruption threshold for obliqu
            vstarprime = sqrt(2.*qrdstarprime*mtot/mu)
 c     eq. 16, impact velocity at catastrophic disruption threshold for oblique (b>0) impacts
 
-           qrer = qrdstarprime*((-2.*m_target/mtot)+2.0)
+           qrer = qrdstarprime*((-2.*m(i)/mtot)+2.0)
 c  eq. 5(rearranged), specific impact energy at erosion threshold
            ver_squred = 2.0*qrer*mtot/mu
 c     eq. 1(rearranged), velocity at erosion threshold
@@ -397,8 +469,8 @@ c     In this case, hit and run regime. Target intact but projectile may be disr
            else  ! If not hit and run regime
               qsupercat = 1.8*qrdstarprime ! super-cat specific impact energy
               vsupercat_squred = 2.0*qsupercat*mtot/mu ! super-cat impact velocity
-              write(*,"(A19,E20.7)") "V_supercat squared: ", 
-     %         vsupercat_squred
+              write(*,"(A19,E20.7)") "V_supercat: ", 
+     %         sqrt(vsupercat_squred)*AU/(24.0*3600.0)
               if (vrel_magnitude_squared.gt.ver_squred) then
                  if (vrel_magnitude_squared.gt.vsupercat_squred) then
                     collision_type = 3
