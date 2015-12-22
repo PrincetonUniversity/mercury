@@ -220,7 +220,9 @@ c
       real*8 vstarprime,qrer,ver_squred,qsupercat,vsupercat_squred
       integer collision_type, graze, filestatus
 c     -1 is central collision, 1 is perfect merger, 2 is hit & run
-c 3 is supercatastrophic disruption, 4 is erosive disruption, 5 is partial accretion
+c     3 is supercatastrophic disruption, 4 is erosive disruption, 5 is partial accretion
+
+      real*8 m_target, m_proj
 
 c     calculate rho in proper units, mercury units
       rhocgs = AU * AU * AU  / MSUN
@@ -291,14 +293,18 @@ c      endif
       else
 
         gamma = m(j)/m(i)       ! mass particle / mass target greater
-        mtot = m(j) + m(i)      ! total mass
+        mtot = (m(j) + m(i)) * MSUN ! total mass
+        m_target = m(i) * MSUN
+        m_proj = m(j) * MSUN
+        r_target = rphys(i) * AU
+        r_proj = rphys(j) * AU
 
-        xrel(1) = xh(1,j) - xh(1,i)
-        xrel(2) = xh(2,j) - xh(2,i)
-        xrel(3) = xh(3,j) - xh(3,i)
-        vrel(1) = vh(1,j) - vh(1,i)
-        vrel(2) = vh(2,j) - vh(2,i)
-        vrel(3) = vh(3,j) - vh(3,i)
+        xrel(1) = (xh(1,j) - xh(1,i))*AU
+        xrel(2) = (xh(2,j) - xh(2,i))*AU
+        xrel(3) = (xh(3,j) - xh(3,i))*AU
+        vrel(1) = (vh(1,j) - vh(1,i))*AU/(24.0*3600.0)
+        vrel(2) = (vh(2,j) - vh(2,i))*AU/(24.0*3600.0)
+        vrel(3) = (vh(3,j) - vh(3,i))*AU/(24.0*3600.0)
         vrel_magnitude_squared = vrel(1)*vrel(1) + vrel(2)*vrel(2) + 
      %       vrel(3)*vrel(3)
 
@@ -313,20 +319,20 @@ c      endif
 
         b_ = sqrt(1.0 - costheta_squared) ! Impact parameter, sin(theta)
         write(*,*) "  b_: ", b_
-        l_ = (rphys(j) + rphys(i)) * (1.0 - b_) ! length (absolute in CGS) of projecticle that overlaps the target
-        alpha = (3.0*rphys(j)*(l_*l_) - (l_*l_*l_))/(4.0*(rphys(j)*
-     %       rphys(j)*rphys(j) )) ! Intersecting mass fraction
+        l_ = (r_target + r_proj) * (1.0 - b_) ! length (absolute in CGS) of projecticle that overlaps the target
+        alpha = (3.0*r_proj*(l_*l_) - (l_*l_*l_))/(4.0*(r_proj*
+     %       r_proj*r_proj )) ! Intersecting mass fraction
 
         if (rphys(i).gt.(b_*(rphys(i)+rphys(j) ) +rphys(j)) ) alpha=1.0 !Maximum alpha
-        M_ = m(i) + alpha*m(j)  !mass of target + interacting mass of projectile
-        R_ = ( (3.*M_)/(4.*PI*rhoforall_mercunits) )**(1./3.) !radius that target + interacting mass would have
-        vesc_squared = 2.*K2*M_/R_ !escape velocity of target + interacting mass eq. 53
+        M_ = m_target + alpha*m_proj  !mass of target + interacting mass of projectile
+        R_ = ( (3.*M_)/(4.*PI*rho_forall) )**(1./3.) !radius that target + interacting mass would have
+        vesc_squared = 2.*G__*M_/R_ !escape velocity of target + interacting mass eq. 53
         if (vrel_magnitude_squared.lt.vesc_squared) then
            call mce_merg (jcen,i,j,nbod,nbig,m,xh,vh,s,stat,elost)
            collision_type = 1
 
         else
-           bcrit = rphys(i)/(rphys(i) + rphys(j))
+           bcrit = r_target/(r_target + r_proj)
 
            if (b_ < bcrit) then
               graze = 0
@@ -336,11 +342,11 @@ c      endif
            write(*,*) graze
            
            rc1 = (3.0*mtot/(4.*PI*rho1))**(1./3.) !radius of all mass if rho = 1
-           qpd = cstar*4.0/5.0*PI*rho1*K2*rc1*rc1 !eq. 28, specific
+           qpd = cstar*4.0/5.0*PI*rho1*G__*rc1*rc1 !eq. 28, specific
 c           ! impact energy when mt=mp
-           vpd = sqrt(32.*PI*cstar*rho1*K2/5.)*rc1 !eq. 30, vel version of above
-           mu  = (m(i) * m(j) / mtot) ! reduced mass
-           muint = alpha*m(i)*m(j)/(m(i) + alpha*m(j))
+           vpd = sqrt(32.*PI*cstar*rho1*G__/5.)*rc1 !eq. 30, vel version of above
+           mu  = (m_target * m_proj / mtot) ! reduced mass
+           muint = alpha*m_target*m_proj/(m_target + alpha*m_proj)
 
            qrdstar = qpd*(   (((gamma+1.0)*(gamma+1.0))/(4.0*
      %          gamma))**(2.0/(3.0*mubar)-1.0)   )
@@ -354,7 +360,7 @@ c eq. 15, specific impact energy at catastrophic disruption threshold for obliqu
            vstarprime = sqrt(2.*qrdstarprime*mtot/mu)
 c     eq. 16, impact velocity at catastrophic disruption threshold for oblique (b>0) impacts
 
-           qrer = qrdstarprime*((-2.*m(i)/mtot)+2.0)
+           qrer = qrdstarprime*((-2.*m_target/mtot)+2.0)
 c  eq. 5(rearranged), specific impact energy at erosion threshold
            ver_squred = 2.0*qrer*mtot/mu
 c     eq. 1(rearranged), velocity at erosion threshold
