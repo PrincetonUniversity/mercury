@@ -31,6 +31,16 @@ c First the main loop
 c
       data opt/1,2,3,2,0,1,0,0/
 
+c     mem, lmem initialization
+      mem(67) = " collided with the central body at "
+      lmem(67) = 35
+      mem(69) = " was hit by "
+      lmem(69) = 12
+      mem(71) = " at "
+      lmem(71) = 4
+      mem(2) = " years "
+      mem(1) = " days  "
+
 c     central object
       m(1) = 0.1
       vh(1,1) = 0.
@@ -68,11 +78,11 @@ c Lets' test a basic merger.  Two objects nearly on top of each other, no relati
       vh(2,3) = vh(2,2)
       vh(3,3) = vh(3,2) 
 
-      call phys_radii(nbod,rphys,m,rho_forall)
+      call phys_radii(nbod,rphys,m,rho_forall*( AU * AU * AU  / MSUN))
 
       outfilename = "testing_output.candel.txt"
       
-      write(*,*)  "Beginning testing..."
+      write(*,"(A20)")  "Beginning testing..."
 
       call mce_coll_frag(0.,0.,elost,0.,1,3,nbod,nbig,
      %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
@@ -87,6 +97,8 @@ c Lets' test a basic merger.  Two objects nearly on top of each other, no relati
       call int_checker(coltype_num,1,num_tests,
      %     num_success,testname)
 
+
+
       m(4) = 5.682E-7
       m(5) = m(4) * 0.2
       vh(1,4) = 0.00577548327 ! AU/day
@@ -94,6 +106,8 @@ c Lets' test a basic merger.  Two objects nearly on top of each other, no relati
       xh(1,4) = xh(1,5) - 8.0E-6
       xh(2,4) = xh(2,5) - 7.2202E-6
       xh(3,4) = xh(3,5)
+
+      call phys_radii(nbod,rphys,m,rho_forall*( AU * AU * AU  / MSUN))
 
       call mce_coll_frag(0.,0.,elost,0.,4,5,nbod,nbig,
      %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
@@ -120,26 +134,30 @@ c Lets' test a basic merger.  Two objects nearly on top of each other, no relati
       xh(2,4) = xh(2,5) - 7.2202E-6
       xh(3,4) = xh(3,5)
 
+      call phys_radii(nbod,rphys,m,rho_forall*( AU * AU * AU  / MSUN))
+
+      write(*,"(A20,E20.7, E15.7)") "  phys radii: ", rphys(4), m(4)
+
       call mce_coll_frag(0.,0.,elost,0.,4,5,nbod,nbig,
      %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
       testname = "supercatastrophic"
       call int_checker(coltype_num,3,num_tests,
      %     num_success,testname)
 
-      write(*,*)  "   "
-      write(*,*)  "************************************** "
-      write(*,*)  "*********   Test results   *********** "
+      write(*,"(A3)")  "   "
+      write(*,"(A39)")  "************************************** "
+      write(*,"(A39)")    "*********   Test results   *********** "
 
       if (num_success.eq.num_tests) then
-         write(*,*) "   all passed, no problems!"
+         write(*,"(A27)") "   all passed, no problems!"
       else
-         write(*,*) "   Warning! ###"
-         write(*,*) " Failed ", num_tests - num_success, 
-     %   " tests of ", num_tests, " total."
-         write(*,*) "   "
-         write(*,*) "Reminder: -1 central collision, 1 perfect merger"
-         write(*,*) "2 hit & run, 3 supercatastrophic disruption"
-         write(*,*) "4 is erosive disruption, 5 is partial accretion"
+         write(*,"(A15)") "   Warning! ###"
+         write(*,"(A8,I3,A10,I3,A7)") " Failed ",  
+     %   num_tests - num_success, " tests of ", num_tests, " total."
+         write(*,"(A3)") "   "
+         write(*,"(A45)") "Reminder: -1 cent. collision, 1 perf. merger"
+         write(*,"(A44)") "2 hit & run, 3 supercatastrophic disruption"
+         write(*,"(A45)") "4 is erosive disruption, 5 partial accretion"
       end if
 
       stop
@@ -222,11 +240,11 @@ c
 c     -1 is central collision, 1 is perfect merger, 2 is hit & run
 c     3 is supercatastrophic disruption, 4 is erosive disruption, 5 is partial accretion
 
-      real*8 m_target, m_proj
+      real*8 m_target, m_proj,r_target,r_proj
 
 c     calculate rho in proper units, mercury units
       rhocgs = AU * AU * AU  / MSUN
-      rhoforall_mercunits = rho_forall/rhocgs
+      rhoforall_mercunits = rho_forall * rhocgs
       
 
 
@@ -299,6 +317,12 @@ c      endif
         r_target = rphys(i) * AU
         r_proj = rphys(j) * AU
 
+c        write(*,"(ES14.7E2)") m_target
+c        write(*,"(ES14.7E2)") m_proj
+c        write(*,"(ES14.7E2)") r_target
+c        write(*,"(ES14.7E2)") r_proj
+
+
         xrel(1) = (xh(1,j) - xh(1,i))*AU
         xrel(2) = (xh(2,j) - xh(2,i))*AU
         xrel(3) = (xh(3,j) - xh(3,i))*AU
@@ -309,7 +333,7 @@ c      endif
      %       vrel(3)*vrel(3)
 
         if (vrel_magnitude_squared.eq.(0.0)) then
-           write(*,*) "Somehow, the relative velocity is zero!"
+           write(*,"(A41)") "Somehow, the relative velocity is zero!"
            stop 987
         end if
 
@@ -318,7 +342,7 @@ c      endif
      %   xrel(3) ) * vrel_magnitude_squared ) ! Used for next calculation
 
         b_ = sqrt(1.0 - costheta_squared) ! Impact parameter, sin(theta)
-        write(*,*) "  b_: ", b_
+        write(*,"(A6,F8.6)") "  b_: ", b_
         l_ = (r_target + r_proj) * (1.0 - b_) ! length (absolute in CGS) of projecticle that overlaps the target
         alpha = (3.0*r_proj*(l_*l_) - (l_*l_*l_))/(4.0*(r_proj*
      %       r_proj*r_proj )) ! Intersecting mass fraction
@@ -327,6 +351,7 @@ c      endif
         M_ = m_target + alpha*m_proj  !mass of target + interacting mass of projectile
         R_ = ( (3.*M_)/(4.*PI*rho_forall) )**(1./3.) !radius that target + interacting mass would have
         vesc_squared = 2.*G__*M_/R_ !escape velocity of target + interacting mass eq. 53
+        write(*,"(A6,F12.1)") "Vesc: ", sqrt(vesc_squared)
         if (vrel_magnitude_squared.lt.vesc_squared) then
            call mce_merg (jcen,i,j,nbod,nbig,m,xh,vh,s,stat,elost)
            collision_type = 1
@@ -339,7 +364,7 @@ c      endif
            else
               graze = 1
            endif
-           write(*,*) graze
+           write(*,"(I3)") graze
            
            rc1 = (3.0*mtot/(4.*PI*rho1))**(1./3.) !radius of all mass if rho = 1
            qpd = cstar*4.0/5.0*PI*rho1*G__*rc1*rc1 !eq. 28, specific
@@ -372,7 +397,8 @@ c     In this case, hit and run regime. Target intact but projectile may be disr
            else  ! If not hit and run regime
               qsupercat = 1.8*qrdstarprime ! super-cat specific impact energy
               vsupercat_squred = 2.0*qsupercat*mtot/mu ! super-cat impact velocity
-              write(*,*) vsupercat_squred
+              write(*,"(A19,E20.7)") "V_supercat squared: ", 
+     %         vsupercat_squred
               if (vrel_magnitude_squared.gt.ver_squred) then
                  if (vrel_magnitude_squared.gt.vsupercat_squred) then
                     collision_type = 3
@@ -844,13 +870,14 @@ c    calculate the physical radii of all the objects
       include 'mercury.inc'
 
       integer nbod
-      real*8 rphys(nbod),m(nbod),rho(nbod)
+      real*8 rphys(nbod),m(nbod),rho
       integer k ! local
 
       do k=2, nbod
-         rphys(k) = (3.*m(k)/(4.*PI*rho(k)))**(1./3.)
+         rphys(k) = (3.*m(k)/(4.*PI*rho))**(1./3.)
       end do
 
+c      write(*,"(A20,E20.5)") "   rho is: ", rho
       return
       end
 
@@ -876,9 +903,10 @@ c
          numberofsuccess = numberofsuccess + 1
       else
          numberoftests = numberoftests + 1
-         write(*,*) "*****  Failed test! Name: ", testname, "    "
-         write(*,*) "--------"
-         write(*,*) "    ",inttocheck," is not ", inttocheckagainst
+         write(*,"(A26,A20)" ) "*****  Failed test! Name: ", testname
+c         write(*,"(A8)") "--------"
+         write(*,"(A4,I1,A8,I1)") "    ",inttocheck," is not ", 
+     %   inttocheckagainst
       end if
 
 
