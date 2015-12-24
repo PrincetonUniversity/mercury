@@ -304,6 +304,10 @@ c
       real*8 rc1,qpd,vpd,mu,muint,qrdstar,vstar,qrdstarprime
       real*8 vstarprime,qrer,ver_squred,qsupercat,vsupercat_squred
       real*8 rho1
+      real*8 phidag,Aintdag,Lintdag,Mintdag,alphadag,mtotdag
+      real*8 rc1dag,qpddag,vpddag,muintdag,gammadag,qrdstardag
+      real*8 vrdstardag,qrdstarprimedag,vstarprimedag,qrerdag,verdag
+      real*8 qsupercatdag,vsupercatdag,mudag
       integer collision_type, graze, filestatus
 c     -1 is central collision, 1 is perfect merger, 2 is hit & run
 c     3 is supercatastrophic disruption, 4 is erosive disruption, 5 is partial accretion
@@ -436,7 +440,7 @@ c        write(*,"(A6,F8.6)") "  b_: ", b_
            else
               graze = 1
            endif
-           write(*,"(I3)") graze
+c           write(*,"(I3)") graze
            
            rc1 = (3.0*mtot/(4.*PI*rho1))**(1./3.) !radius of all mass if rho = 1
            qpd = cstar*4.0/5.0*PI*rho1*K2*rc1*rc1 !eq. 28, specific
@@ -465,6 +469,98 @@ c     eq. 1(rearranged), velocity at erosion threshold
            if (graze.eq.1.and.vrel_magnitude_squared.lt.ver_squred) then
 c     In this case, hit and run regime. Target intact but projectile may be disrupted
               collision_type = 2
+
+              if (gamma.le.0.5) then !do a backwards calculation
+                 phidag = 2.0 * acos((l_-rphys(j))/rphys(j))
+                 Aintdag= rphys(j)*rphys(j)*(PI-(phidag-
+     %             sin(phidag))/2.0) !eq. 46
+                 Lintdag = 2.0*sqrt(rphys(i)*rphys(i)-(rphys(i)-l_/2.0)*
+     %            (rphys(i)-l_/2.0))  !eq. 47
+                 Mintdag = Aintdag*Lintdag*rhoforall_mercunits	 !eq. 48
+                 alphadag = Mintdag/m(i)
+                 if (alphadag.lt.0.0) alphadag = 1.
+                 if (rphys(i).gt.(b_*rphys(j)+rphys(i)) + rphys(j)) then
+                     write(*,"(A46)") "H&R ERROR: projectile fully
+     % in target shadow!"
+                 end if
+                 mtotdag = Mintdag + m(j)
+                 rc1dag =(3.0*(mtotdag)/(4.*PI*rho1))**(1./3.)
+                 qpddag = cstar*4.0/5.0*PI*rho1*K2*rc1dag*rc1dag
+                 vpddag = sqrt(32.0*PI*cstar*rho1*K2/5.0)*rc1dag
+                 muintdag = alphadag*m(i)*m(j)/(alphadag*m(i) + m(j))
+                 gammadag = Mintdag/m(j)
+                 qrdstardag = qpd*(0.25*(gammadag + 1.0)*(gammadag + 
+     %             1.0)/gammadag)**(2.0/(3.0*mubar)-1.0) !eq. 52
+                 vrdstardag = vpd*(0.25*(gammadag+1.0)*(gammadag + 
+     %             1.0)/gammadag)**(1.0/(3.0*mubar)) !eq. 51
+
+
+                 qrdstarprimedag = qrdstardag !in backwards case
+                 vstarprimedag = sqrt(2.0*qrdstarprimedag*
+     %             mtotdag/muintdag)
+
+                 qrerdag = qrdstarprimedag*(-2.0*(m(j)/mtotdag)+2.0)
+                 verdag = sqrt(2.0*qrerdag*mtotdag/muintdag)
+                 
+                 qsupercatdag = 1.8*qrdstarprimedag
+                 vsupercatdag = sqrt(2.*qsupercatdag*mtotdag/muintdag)
+                 mudag=muintdag
+
+              else  ! Do a forward calculation
+
+                 mudag = mu
+                 mtotdag=mtot
+                 alphadag = (3.0*rphys(i)*(l_*l_) - 
+     %            (l_*l_*l_))/(4.0*(rphys(i)*rphys(i)*rphys(i)))
+                 Mintdag = alphadag*m(i)
+                 if (alphadag.lt.0.0) alphadag = 1.
+                 if (rphys(i).gt.(b_*rphys(j)+rphys(i)) + rphys(j)) then
+                    write(*,"(A46)") "H&R ERROR: projectile fully
+     % in target shadow!"
+                 end if
+                 muintdag = alphadag*m(i)*m(j)/(alphadag*m(i) + m(j))
+              
+                 gammadag = m(i)/m(j)
+                 qrdstardag = qpd*(0.25*(gammadag + 1.0)*(gammadag+1.0)/
+     %             gammadag)**(2.0/(3.0*mubar)-1.0) !eq. 52
+                 vrdstardag = vpd*(0.25*(gammadag+1.0)*(gammadag+1.0)/
+     %             gammadag)**(1.0/(3.0*mubar)) !eq. 51
+              
+                 qrdstarprimedag = (mu/muintdag)**(2.-3.*mubar/2.)*
+     %             qrdstardag
+                 vstarprimedag = sqrt(2.*qrdstarprimedag*mtot/mu)
+              
+                 qrerdag = qrdstarprimedag*(-2.*(m(j)/mtot)+2.)
+                 verdag = sqrt(2.*qrerdag*mtot/mu)
+              
+                 qsupercatdag = 1.8*qrdstarprimedag
+                 vsupercatdag = sqrt(2.*qsupercatdag*mtot/mu)
+
+              end if            ! gamma <= 0.5, do a backwards calculation
+
+              if (vi > verdag) then !if in erosive regime
+                 qrdag = 0.5*mudag*vi*vi/mtotdag !specific impact energy in COM frame
+                 if (vi > vsupercatdag) then !if in super-cat regime projectile is destroyed
+                    sys.stdout.write("SUPER-CAT\n")
+                    eta = -1.5 #eta is exponent in power law of fragment size distribution (super-cat regime)
+                    mslr = mtotdag*0.1/math.pow(1.8,eta)*math.pow((qrdag/qrdstardag),eta) #mass of second largest remnant
+                 else: #if not super-cat
+                    sys.stdout.write("DISRUPTED\n")
+                    mslr = mtotdag*(-0.5*(qrdag/qrdstardag -1.)+0.5)
+              else
+                 sys.stdout.write("INTACT\n")
+                 mslr = mp
+                 hit_and_run = 1	#solution is a hit and run
+
+              end if            !checking if was in erosive regime, for hit-and-run
+
+
+
+
+
+
+
+
 
            else  ! If not hit and run regime
               qsupercat = 1.8*qrdstarprime ! super-cat specific impact energy
