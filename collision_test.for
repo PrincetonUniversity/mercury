@@ -531,26 +531,29 @@ c     In this case, hit and run regime. Target intact but projectile may be disr
                  vstarprimedag = sqrt(2.*qrdstarprimedag*mtot/mu)
               
                  qrerdag = qrdstarprimedag*(-2.*(m(j)/mtot)+2.)
-                 verdag = sqrt(2.*qrerdag*mtot/mu)
+                 verdag_squred = 2.*qrerdag*mtot/mu
               
                  qsupercatdag = 1.8*qrdstarprimedag
-                 vsupercatdag = sqrt(2.*qsupercatdag*mtot/mu)
+                 vsupercatdag_squred = 2.*qsupercatdag*mtot/mu
 
               end if            ! gamma <= 0.5, do a backwards calculation
 
-              if (vi > verdag) then !if in erosive regime
-                 qrdag = 0.5*mudag*vi*vi/mtotdag !specific impact energy in COM frame
-                 if (vi > vsupercatdag) then !if in super-cat regime projectile is destroyed
-                    sys.stdout.write("SUPER-CAT\n")
-                    eta = -1.5 #eta is exponent in power law of fragment size distribution (super-cat regime)
-                    mslr = mtotdag*0.1/math.pow(1.8,eta)*math.pow((qrdag/qrdstardag),eta) #mass of second largest remnant
-                 else: #if not super-cat
-                    sys.stdout.write("DISRUPTED\n")
-                    mslr = mtotdag*(-0.5*(qrdag/qrdstardag -1.)+0.5)
+              if (vrel_magnitude_squared.gt.verdag_squred) then !if in erosive regime
+                 qrdag = 0.5*mudag*vrel_magnitude_squared/mtotdag !specific impact energy in COM frame
+                 if (vrel_magnitude_squared.gt.vsupercatdag_squred) then !if in super-cat regime projectile is destroyed
+                    continue
+c                    sys.stdout.write("SUPER-CAT\n")
+c                    eta = -1.5 !eta is exponent in power law of fragment size distribution (super-cat regime)
+c                    mslr = mtotdag*0.1/math.pow(1.8,eta)*math.pow((qrdag/qrdstardag),eta) #mass of second largest remnant
+                 else           !if not super-cat
+                    continue
+c                    sys.stdout.write("DISRUPTED\n")
+c                    mslr = mtotdag*(-0.5*(qrdag/qrdstardag -1.)+0.5)
               else
-                 sys.stdout.write("INTACT\n")
-                 mslr = mp
-                 hit_and_run = 1	#solution is a hit and run
+                    continue
+c                 sys.stdout.write("INTACT\n")
+c                 mslr = mp
+c                 hit_and_run = 1	#solution is a hit and run
 
               end if            !checking if was in erosive regime, for hit-and-run
 
