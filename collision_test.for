@@ -548,7 +548,8 @@ c                    mslr = mtotdag*0.1/math.pow(1.8,eta)*math.pow((qrdag/qrdsta
                  else           !if not super-cat
                     continue
 c                    sys.stdout.write("DISRUPTED\n")
-c                    mslr = mtotdag*(-0.5*(qrdag/qrdstardag -1.)+0.5)
+c                     mslr = mtotdag*(-0.5*(qrdag/qrdstardag -1.)+0.5)
+                 end if !checking if was in supercat regime
               else
                     continue
 c                 sys.stdout.write("INTACT\n")
