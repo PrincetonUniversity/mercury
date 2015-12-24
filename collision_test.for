@@ -307,7 +307,8 @@ c
       real*8 phidag,Aintdag,Lintdag,Mintdag,alphadag,mtotdag
       real*8 rc1dag,qpddag,vpddag,muintdag,gammadag,qrdstardag
       real*8 vrdstardag,qrdstarprimedag,vstarprimedag,qrerdag,verdag
-      real*8 qsupercatdag,vsupercatdag,mudag
+      real*8 qsupercatdag,vsupercatdag,mudag,qrdag,verdag_squred
+      real*8 vsupercatdag_squred
       integer collision_type, graze, filestatus
 c     -1 is central collision, 1 is perfect merger, 2 is hit & run
 c     3 is supercatastrophic disruption, 4 is erosive disruption, 5 is partial accretion
