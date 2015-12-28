@@ -21,7 +21,7 @@ c First the main loop
       real*8 m(NMAX),xh(3,NMAX),vh(3,NMAX),s(3,NMAX),rho(NMAX)
       real*8 rceh(NMAX),epoch(NMAX),ngf(4,NMAX),rmax,rcen,jcen(3)
       real*8 cefac,time,tstart,tstop,dtout,h0,tol,en(3),am(3)
-      real*8 rphys(NMAX), elost
+      real*8 rphys(NMAX), elost, mlr
       character*8 id(NMAX)
       character*80 outfile(3), dumpfile(4), mem(NMESS)
       character*80 outfilename,testname
@@ -86,14 +86,14 @@ c Lets' test a basic merger.  Two objects nearly on top of each other, no relati
 
       write(*,"(A30)") "---------------------------"
       call mce_coll_frag(0.,0.,elost,0.,1,3,nbod,nbig,
-     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
+     % m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num,mlr)
       testname = "collision with central object"
       call int_checker(coltype_num,-1,num_tests,
      %     num_success,testname)
 
       write(*,"(A30)") "---------------------------"
       call mce_coll_frag(0.,0.,elost,0.,2,3,nbod,nbig,
-     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
+     % m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num,mlr)
       testname = "basicmerger"
       call int_checker(coltype_num,1,num_tests,
      %     num_success,testname)
@@ -112,10 +112,13 @@ c Lets' test a basic merger.  Two objects nearly on top of each other, no relati
 
       write(*,"(A30)") "---------------------------"
       call mce_coll_frag(0.,0.,elost,0.,4,5,nbod,nbig,
-     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
+     % m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num,mlr)
       testname = "hit and run"
       call int_checker(coltype_num,2,num_tests,
      %     num_success,testname)
+      testname = "hit and run: mlr"
+      call float_checker(mlr,0.,num_tests,
+     %     num_success,1.e-6,testname)
 
       xh(1,4) = xh(1,5) - 1.0E-5
       xh(2,4) = xh(2,5) - 3.0E-7
@@ -123,10 +126,13 @@ c Lets' test a basic merger.  Two objects nearly on top of each other, no relati
 
       write(*,"(A30)") "---------------------------"
       call mce_coll_frag(0.,0.,elost,0.,4,5,nbod,nbig,
-     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
+     % m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num,mlr)
       testname = "partial accretion"
       call int_checker(coltype_num,5,num_tests,
      %     num_success,testname)
+      testname = "partial accretion: mlr"
+      call float_checker(mlr,0.,num_tests,
+     %     num_success,1.e-6,testname)
       
 
       m(4) = 5.682E-7
@@ -143,10 +149,14 @@ c      write(*,"(A20,E20.7, E15.7)") "  phys radii: ", rphys(4), m(4)
 
       write(*,"(A30)") "---------------------------"
       call mce_coll_frag(0.,0.,elost,0.,4,5,nbod,nbig,
-     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
+     % m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num,mlr)
       testname = "supercatastrophic"
       call int_checker(coltype_num,3,num_tests,
      %     num_success,testname)
+      testname = "supercatastrophic: mlr"
+      call float_checker(mlr,2.3741648567E-08,num_tests,
+     %     num_success,1.e-6,testname)
+
 
       vh(1,4) = 0.01477548327 ! AU/day
       vh(1,5) = 0.0
@@ -156,19 +166,25 @@ c      write(*,"(A20,E20.7, E15.7)") "  phys radii: ", rphys(4), m(4)
 
       write(*,"(A30)") "---------------------------"
       call mce_coll_frag(0.,0.,elost,0.,4,5,nbod,nbig,
-     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
+     % m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num,mlr)
       testname = "erosive disruption"
       call int_checker(coltype_num,4,num_tests,
      %     num_success,testname)
+      testname = "erosive disruption: mlr"
+      call float_checker(mlr,5.60270432701e-07,num_tests,
+     %     num_success,1.e-6,testname)
 
       vh(1,4) = 0.01377548327 ! AU/day
 
       write(*,"(A30)") "---------------------------"
       call mce_coll_frag(0.,0.,elost,0.,4,5,nbod,nbig,
-     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
+     % m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num,mlr)
       testname = "partial accretion"
       call int_checker(coltype_num,5,num_tests,
      %     num_success,testname)
+      testname = "partial accretion: mlr"
+      call float_checker(mlr,5.76169157685e-07,num_tests,
+     %     num_success,1.e-6,testname)
 
       vh(1,4) = 0.01507548327 ! AU/day
       vh(1,5) = 0.0
@@ -176,37 +192,49 @@ c      write(*,"(A20,E20.7, E15.7)") "  phys radii: ", rphys(4), m(4)
 
       write(*,"(A30)") "---------------------------"
       call mce_coll_frag(0.,0.,elost,0.,4,5,nbod,nbig,
-     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
+     % m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num,mlr)
       testname = "partial accretion, triple point"
       call int_checker(coltype_num,5,num_tests,
      %     num_success,testname)
+      testname = "partial accretion, triple point: mlr"
+      call float_checker(mlr,5.73939331687e-07,num_tests,
+     %     num_success,1.e-6,testname)
 
       xh(1,4) = xh(1,5) - 1.210E-5
 
       write(*,"(A30)") "---------------------------"
       call mce_coll_frag(0.,0.,elost,0.,4,5,nbod,nbig,
-     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
+     % m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num,mlr)
       testname = "hit and run, triple point"
       call int_checker(coltype_num,2,num_tests,
      %     num_success,testname)
+      testname = "hit and run, triple point: mlr"
+      call float_checker(mlr,0.,num_tests,
+     %     num_success,1.e-6,testname)
 
       vh(1,4) = 0.01597548327 ! AU/day
 
       write(*,"(A30)") "---------------------------"
       call mce_coll_frag(0.,0.,elost,0.,4,5,nbod,nbig,
-     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
+     % m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num,mlr)
       testname = "erosive disruption, triple point"
       call int_checker(coltype_num,4,num_tests,
      %     num_success,testname)
+      testname = "erosive disruption, triple point: mlr"
+      call float_checker(mlr,5.66574205836e-07,num_tests,
+     %     num_success,1.e-6,testname)
 
       vh(1,4) = 0.0371 ! AU/day
 
       write(*,"(A30)") "---------------------------"
       call mce_coll_frag(0.,0.,elost,0.,4,5,nbod,nbig,
-     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num)
+     % m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfilename,coltype_num,mlr)
       testname = "supercat, close to boundary"
       call int_checker(coltype_num,3,num_tests,
      %     num_success,testname)
+      testname = "supercat, close to boundary: mlr"
+      call float_checker(mlr,6.6874349086e-08,num_tests,
+     %     num_success,1.e-6,testname)
 
 
 
@@ -280,7 +308,7 @@ c this function is called in a loop from do k=1, nhit
 
 
       subroutine mce_coll_frag (time,tstart,elost,jcen,i,j,nbod,nbig,
-     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfile,coltype_num)
+     %  m,xh,vh,s,rphys,stat,id,opt,mem,lmem,outfile,coltype_num,mlr)
 
       implicit none
       include 'mercury.inc'
@@ -291,6 +319,8 @@ c Input/Output
       real*8 m(nbod),xh(3,nbod),vh(3,nbod),s(3,nbod),rphys(nbod)
       character*80 outfile,mem(NMESS)
       character*8 id(nbod)
+
+      real*8 mlr
 
 c Local
       integer year,month,itmp
@@ -308,7 +338,7 @@ c
       real*8 rc1dag,qpddag,vpddag,muintdag,gammadag,qrdstardag
       real*8 vrdstardag,qrdstarprimedag,vstarprimedag,qrerdag,verdag
       real*8 qsupercatdag,vsupercatdag,mudag,qrdag,verdag_squred
-      real*8 vsupercatdag_squred
+      real*8 vsupercatdag_squred,eta,qr
       integer collision_type, graze, filestatus
 c     -1 is central collision, 1 is perfect merger, 2 is hit & run
 c     3 is supercatastrophic disruption, 4 is erosive disruption, 5 is partial accretion
@@ -323,6 +353,7 @@ c     rho1 also needs to be put into correct unit
       rho1 = rho1_cgs * rhocgs
       
 
+      mlr = 0.
 
 c If two bodies collided, check that the less massive one is given 
 c the larger index (unless the more massive one is a Small body)
@@ -570,17 +601,23 @@ c                 hit_and_run = 1	#solution is a hit and run
            else  ! If not hit and run regime
               qsupercat = 1.8*qrdstarprime ! super-cat specific impact energy
               vsupercat_squred = 2.0*qsupercat*mtot/mu ! super-cat impact velocity
-              write(*,"(A19,E20.7)") "V_supercat: ", 
-     %         sqrt(vsupercat_squred)*AU/(24.0*3600.0)
+c              write(*,"(A19,E20.7)") "V_supercat: ", 
+c     %         sqrt(vsupercat_squred)*AU/(24.0*3600.0)
               if (vrel_magnitude_squared.gt.ver_squred) then
+                 qr = 0.5*mu*vrel_magnitude_squared/mtot
                  if (vrel_magnitude_squared.gt.vsupercat_squred) then
                     collision_type = 3
+                    eta = -1.5 !exponent in power-law of fragment size distribution (super-cat regime)
+                    mlr = mtot*0.1/(1.8**eta)*(qr/qrdstarprime)**eta !mass of largest remnant
                  else
                     collision_type = 4
+                    mlr = mtot*(-0.5*(qr/qrdstarprime - 1.) + 0.5) !mass of largest remnant	
                  end if         ! this if is checking erosion case, supercat or not
                  
               else
                  collision_type = 5 ! partial accretion
+                 qr = 0.5*mu*vrel_magnitude_squared/mtot !specific impact energy in COM frame
+                 mlr = mtot*(-0.5*(qr/qrdstarprime - 1) + 0.5) ! mass of largest remnant
 
               end if ! this if is checking if erosion regime or not
               
@@ -1080,6 +1117,33 @@ c
 c         write(*,"(A8)") "--------"
          write(*,"(A4,I1,A8,I1)") "    ",inttocheck," is not ", 
      %   inttocheckagainst
+      end if
+
+
+      return
+      end
+
+
+      subroutine float_checker(floattocheck,floattocheckagainst,
+     % numberoftests,numberofsuccess,epsilon,testname)
+
+      implicit none
+
+      integer numberoftests,numberofsuccess
+      real*8 floattocheck,floattocheckagainst
+      real*8  epsilon
+      character*100 testname
+
+      if ( (abs(floattocheck - floattocheckagainst)/
+     % floattocheckagainst).lt.epsilon) then
+         numberoftests = numberoftests + 1
+         numberofsuccess = numberofsuccess + 1
+      else
+         numberoftests = numberoftests + 1
+         write(*,"(A26,A20)" ) "*****  Failed test! Name: ", testname
+c         write(*,"(A8)") "--------"
+         write(*,"(A4,E12.5,A8,E12.5)") "    ",floattocheck," is not ", 
+     %   floattocheckagainst
       end if
 
 
