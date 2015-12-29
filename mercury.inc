@@ -53,5 +53,5 @@ c
       parameter (PIBY2 = PI * .5d0)
       parameter (DR = PI / 180.d0)
       parameter (K2 = 2.959122082855911d-4)
-      parameter (AU = 1.4959787e13)
-      parameter (MSUN = 1.9891e33)
+      parameter (AU = 1.4959787d13)
+      parameter (MSUN = 1.9891d33)

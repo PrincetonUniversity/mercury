@@ -134,13 +134,11 @@ c Lets' test a basic merger.  Two objects nearly on top of each other, no relati
       call int_checker(coltype_num,5,num_tests,
      %     num_success,testname)
       testname = "partial accretion: mlr"
-      num_checkagainst_holder = 0.
+      num_checkagainst_holder = 6.444593515d-07
       call float_checker(mlr,num_checkagainst_holder,num_tests,
      %     num_success,epsilon,testname)
       
 
-      m(4) = 5.682d-7
-      m(5) = m(4) * 0.2
       vh(1,4) = 0.0577548327 ! AU/day
       vh(1,5) = 0.0
       xh(1,4) = xh(1,5) - 8.0d-6
@@ -158,7 +156,7 @@ c      write(*,"(A20,E20.7, E15.7)") "  phys radii: ", rphys(4), m(4)
       call int_checker(coltype_num,3,num_tests,
      %     num_success,testname)
       testname = "supercatastrophic: mlr"
-      num_checkagainst_holder = 2.3741648567d-08
+      num_checkagainst_holder = 2.37362277734d-08!2.3741648567d-08
       call float_checker(mlr,num_checkagainst_holder,num_tests,
      %     num_success,epsilon,testname)
 
@@ -176,7 +174,7 @@ c      write(*,"(A20,E20.7, E15.7)") "  phys radii: ", rphys(4), m(4)
       call int_checker(coltype_num,4,num_tests,
      %     num_success,testname)
       testname = "erosive disruption: mlr"
-      num_checkagainst_holder = 5.60270432701d-07
+      num_checkagainst_holder = 5.60251924327d-07!5.60270432701d-07
       call float_checker(mlr,num_checkagainst_holder,num_tests,
      %     num_success,epsilon,testname)
 
@@ -189,7 +187,7 @@ c      write(*,"(A20,E20.7, E15.7)") "  phys radii: ", rphys(4), m(4)
       call int_checker(coltype_num,5,num_tests,
      %     num_success,testname)
       testname = "partial accretion: mlr"
-      num_checkagainst_holder = 5.76169157685d-07
+      num_checkagainst_holder = 5.76153069815d-07!5.76169157685d-07
       call float_checker(mlr,num_checkagainst_holder,num_tests,
      %     num_success,epsilon,testname)
 
@@ -204,7 +202,7 @@ c      write(*,"(A20,E20.7, E15.7)") "  phys radii: ", rphys(4), m(4)
       call int_checker(coltype_num,5,num_tests,
      %     num_success,testname)
       testname = "partial accretion, triple point: mlr"
-      num_checkagainst_holder = 5.73939331687d-07
+      num_checkagainst_holder = 5.7305254232d-07!5.73939331687d-07
       call float_checker(mlr,num_checkagainst_holder,num_tests,
      %     num_success,epsilon,testname)
 
@@ -230,7 +228,7 @@ c      write(*,"(A20,E20.7, E15.7)") "  phys radii: ", rphys(4), m(4)
       call int_checker(coltype_num,4,num_tests,
      %     num_success,testname)
       testname = "erosive disruption, triple point: mlr"
-      num_checkagainst_holder = 5.66574205836d-07
+      num_checkagainst_holder = 5.66556657181d-07!5.66574205836d-07
       call float_checker(mlr,num_checkagainst_holder,num_tests,
      %     num_success,epsilon,testname)
 
@@ -243,7 +241,7 @@ c      write(*,"(A20,E20.7, E15.7)") "  phys radii: ", rphys(4), m(4)
       call int_checker(coltype_num,3,num_tests,
      %     num_success,testname)
       testname = "supercat, close to boundary: mlr"
-      num_checkagainst_holder = 6.6874349086d-08
+      num_checkagainst_holder = 6.68590800518d-08!6.6874349086d-08
       call float_checker(mlr,num_checkagainst_holder,num_tests,
      %     num_success,epsilon,testname)
 
@@ -265,6 +263,8 @@ c      write(*,"(A20,E20.7, E15.7)") "  phys radii: ", rphys(4), m(4)
          write(*,"(A44)") "2 hit & run, 3 supercatastrophic disruption"
          write(*,"(A45)") "4 is erosive disruption, 5 partial accretion"
       end if
+
+      write(*,"(E20.12)") (K2*(AU*AU*AU)/(MSUN*7.46496d9))
 
       stop
       end
@@ -342,12 +342,12 @@ c
       real*8 gamma, mtot, l_, xrel(3), vrel(3), costheta_squared
       real*8 vrel_magnitude_squared, rhoforall_mercunits
       real*8 b_, alpha, M_, R_, vesc_squared, rhocgs, bcrit
-      real*8 rc1,qpd,vpd,mu,muint,qrdstar,vstar,qrdstarprime
-      real*8 vstarprime,qrer,ver_squred,qsupercat,vsupercat_squred
-      real*8 rho1
+      real*8 rc1,qpd,vpd,mu,muint,qrdstar,qrdstarprime
+      real*8 qrer,ver_squred,qsupercat,vsupercat_squred
+      real*8 rho1!,vstar, vstarprime, vstarprimedag
       real*8 phidag,Aintdag,Lintdag,Mintdag,alphadag,mtotdag
       real*8 rc1dag,qpddag,vpddag,muintdag,gammadag,qrdstardag
-      real*8 vrdstardag,qrdstarprimedag,vstarprimedag,qrerdag,verdag
+      real*8 vrdstardag,qrdstarprimedag,qrerdag,verdag
       real*8 qsupercatdag,vsupercatdag,mudag,qrdag,verdag_squred
       real*8 vsupercatdag_squred,eta,qr
       integer collision_type, graze, filestatus
@@ -471,6 +471,9 @@ c        write(*,"(A6,F8.6)") "  b_: ", b_
         M_ = m(i) + alpha*m(j)  !mass of target + interacting mass of projectile
         R_ = ( (3.d0*M_)/(4.d0*PI*rhoforall_mercunits) )**(THIRD) !radius that target + interacting mass would have
         vesc_squared = 2.0d0*K2*M_/R_ !escape velocity of target + interacting mass eq. 53
+c
+c
+c
         write(*,"(A6,F12.1)") "Vesc: ",
      %   sqrt(vesc_squared)*AU/(86400.0d0)
         if (vrel_magnitude_squared.lt.vesc_squared) then
@@ -488,22 +491,24 @@ c        write(*,"(A6,F8.6)") "  b_: ", b_
 c           write(*,"(I3)") graze
            
            rc1 = (3.0d0*mtot/(4.d0*PI*rho1))**(THIRD) !radius of all mass if rho = 1
+c           write(*,"(A20,E15.8)") "   hhhh:rc1: ", rc1
            qpd = cstar*0.8d0*PI*rho1*K2*rc1*rc1 !eq. 28, specific
 c           ! impact energy when mt=mp
            vpd = sqrt(6.4d0*PI*cstar*rho1*K2)*rc1 !eq. 30, vel version of above
+c           write(*,"(A20,E15.8)") "   hhhh:vpd: ", vpd
            mu  = (m(i) * m(j) / mtot) ! reduced mass
            muint = alpha*m(i)*m(j)/(m(i) + alpha*m(j))
 
            qrdstar = qpd*(   (((gamma+1.0d0)*(gamma+1.0d0))/(4.0d0*
      %          gamma))**(2.0d0/(3.0d0*mubar)-1.0d0)   )
 c           eq. 23, specific impact energy-catastrophic disruption threshold
-           vstar = vpd*(    (((gamma+1.0d0)*(gamma+1.0d0))/(4.0d0*
-     %          gamma))**(1.0d0/(3.0d0*mubar))    )
+c           vstar = vpd*(    (((gamma+1.0d0)*(gamma+1.0d0))/(4.0d0*
+c     %          gamma))**(1.0d0/(3.0d0*mubar))    )
 c     eq. 22, velocity at catastrophic disruption threshold
 
            qrdstarprime = qrdstar* (mu/muint)**(2.0d0-(1.5d0*mubar))
 c eq. 15, specific impact energy at catastrophic disruption threshold for oblique (b>0) impacts
-           vstarprime = sqrt(2.0d0*qrdstarprime*mtot/mu)
+c           vstarprime = sqrt(2.0d0*qrdstarprime*mtot/mu)
 c     eq. 16, impact velocity at catastrophic disruption threshold for oblique (b>0) impacts
 
            qrer = qrdstarprime*((-2.0d0*m(i)/mtot)+2.0d0)
@@ -541,8 +546,8 @@ c     In this case, hit and run regime. Target intact but projectile may be disr
 
 
                  qrdstarprimedag = qrdstardag !in backwards case
-                 vstarprimedag = sqrt(2.0d0*qrdstarprimedag*
-     %             mtotdag/muintdag)
+c                 vstarprimedag = sqrt(2.0d0*qrdstarprimedag*
+c     %             mtotdag/muintdag)
 
                  qrerdag = qrdstarprimedag*(-2.0d0*(m(j)/mtotdag)+2.0d0)
                  verdag = sqrt(2.0d0*qrerdag*mtotdag/muintdag)
@@ -574,7 +579,7 @@ c     In this case, hit and run regime. Target intact but projectile may be disr
               
                  qrdstarprimedag = (mu/muintdag)**(2.0d0-3.0d0*mubar/
      %             2.0d0)*qrdstardag
-                 vstarprimedag = sqrt(2.0d0*qrdstarprimedag*mtot/mu)
+c                 vstarprimedag = sqrt(2.0d0*qrdstarprimedag*mtot/mu)
               
                  qrerdag = qrdstarprimedag*(-2.0d0*(m(j)/mtot)+2.0d0)
                  verdag_squred = 2.0d0*qrerdag*mtot/mu
@@ -1114,6 +1119,10 @@ c       For the checker test, the function that does the checking
 c
 
 
+c      subroutine add_particle(
+
+
+
       subroutine int_checker(inttocheck,inttocheckagainst,numberoftests,
      % numberofsuccess,testname)
 
@@ -1148,10 +1157,10 @@ c         write(*,"(A8)") "--------"
       real*8  epsilon
       character*100 testname
 
-      write(*,"(E12.5,E12.5,E12.5,E12.5)") floattocheck,
-     % floattocheckagainst,
-     % abs(floattocheck - floattocheckagainst)/
-     % floattocheckagainst, epsilon
+c      write(*,"(E12.5,E12.5,E12.5,E12.5)") floattocheck,
+c     % floattocheckagainst,
+c     % abs(floattocheck - floattocheckagainst)/
+c     % floattocheckagainst, epsilon
 
       if ( (floattocheck - floattocheckagainst).eq.(0.0)) then 
          numberoftests = numberoftests + 1
@@ -1164,7 +1173,7 @@ c         write(*,"(A8)") "--------"
          numberoftests = numberoftests + 1
          write(*,"(A26,A40)" ) "*****  Failed test! Name: ", testname
 c         write(*,"(A8)") "--------"
-         write(*,"(A4,E12.5,A8,E12.5)") "    ",floattocheck," is not ", 
+         write(*,"(A4,E15.8,A8,E15.8)") "    ",floattocheck," is not ", 
      %   floattocheckagainst
       end if
 
