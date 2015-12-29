@@ -1119,7 +1119,7 @@ c       For the checker test, the function that does the checking
 c
 
 
-c      subroutine add_particle(
+      subroutine add_particle(m,xh,vh,rho,epoch,stat,id,ce,nbod,nbig)
 
 
 
