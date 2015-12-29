@@ -22,6 +22,7 @@ c First the main loop
       real*8 rceh(NMAX),epoch(NMAX),ngf(4,NMAX),rmax,rcen,jcen(3)
       real*8 cefac,time,tstart,tstop,dtout,h0,tol,en(3),am(3)
       real*8 rphys(NMAX), elost, mlr
+      real*8 num_checkagainst_holder,epsilon
       character*8 id(NMAX)
       character*80 outfile(3), dumpfile(4), mem(NMESS)
       character*80 outfilename,testname
@@ -54,14 +55,14 @@ c     central object
       nbod = 20
       nbig = nbod
       do k=2,nbig
-         m(k) = 1.0E-5
+         m(k) = 1.0d-5
       end do
 
       do k=2,nbig
          xh(1,k) = 0.1 + k*0.001
          xh(2,k) = 0.1 + k*0.001
          xh(3,k) = 0.1 + k*0.001
-         vh(1,k) = 1.0E-19
+         vh(1,k) = 1.0d-19
          vh(2,k) = 0.
          vh(3,k) = 0.
          id(k) = char(k-1)
@@ -72,7 +73,7 @@ c Lets' test a basic merger.  Two objects nearly on top of each other, no relati
 
       xh(1,3) = xh(1,2)
       xh(2,3) = xh(2,2)
-      xh(3,3) = xh(3,2) + 1.0E-8
+      xh(3,3) = xh(3,2) + 1.0d-8
 
       vh(1,3) = vh(1,2)
       vh(2,3) = vh(2,2)
@@ -100,12 +101,12 @@ c Lets' test a basic merger.  Two objects nearly on top of each other, no relati
 
 
 
-      m(4) = 5.682E-7
+      m(4) = 5.682d-7
       m(5) = m(4) * 0.2
       vh(1,4) = 0.00577548327 ! AU/day
       vh(1,5) = 0.0
-      xh(1,4) = xh(1,5) - 8.0E-6
-      xh(2,4) = xh(2,5) - 7.2202E-6
+      xh(1,4) = xh(1,5) - 8.0d-6
+      xh(2,4) = xh(2,5) - 7.2202d-6
       xh(3,4) = xh(3,5)
 
       call phys_radii(nbod,rphys,m,rho_forall*( AU * AU * AU  / MSUN))
@@ -117,11 +118,13 @@ c Lets' test a basic merger.  Two objects nearly on top of each other, no relati
       call int_checker(coltype_num,2,num_tests,
      %     num_success,testname)
       testname = "hit and run: mlr"
-      call float_checker(mlr,0.,num_tests,
-     %     num_success,1.e-6,testname)
+      num_checkagainst_holder = 0.
+      epsilon = 1.d-6
+      call float_checker(mlr,num_checkagainst_holder,num_tests,
+     %     num_success,epsilon,testname)
 
-      xh(1,4) = xh(1,5) - 1.0E-5
-      xh(2,4) = xh(2,5) - 3.0E-7
+      xh(1,4) = xh(1,5) - 1.0d-5
+      xh(2,4) = xh(2,5) - 3.0d-7
       xh(3,4) = xh(3,5)
 
       write(*,"(A30)") "---------------------------"
@@ -131,16 +134,17 @@ c Lets' test a basic merger.  Two objects nearly on top of each other, no relati
       call int_checker(coltype_num,5,num_tests,
      %     num_success,testname)
       testname = "partial accretion: mlr"
-      call float_checker(mlr,0.,num_tests,
-     %     num_success,1.e-6,testname)
+      num_checkagainst_holder = 0.
+      call float_checker(mlr,num_checkagainst_holder,num_tests,
+     %     num_success,epsilon,testname)
       
 
-      m(4) = 5.682E-7
+      m(4) = 5.682d-7
       m(5) = m(4) * 0.2
       vh(1,4) = 0.0577548327 ! AU/day
       vh(1,5) = 0.0
-      xh(1,4) = xh(1,5) - 8.0E-6
-      xh(2,4) = xh(2,5) - 7.2202E-6
+      xh(1,4) = xh(1,5) - 8.0d-6
+      xh(2,4) = xh(2,5) - 7.2202d-6
       xh(3,4) = xh(3,5)
 
       call phys_radii(nbod,rphys,m,rho_forall*( AU * AU * AU  / MSUN))
@@ -154,14 +158,15 @@ c      write(*,"(A20,E20.7, E15.7)") "  phys radii: ", rphys(4), m(4)
       call int_checker(coltype_num,3,num_tests,
      %     num_success,testname)
       testname = "supercatastrophic: mlr"
-      call float_checker(mlr,2.3741648567E-08,num_tests,
-     %     num_success,1.e-6,testname)
+      num_checkagainst_holder = 2.3741648567d-08
+      call float_checker(mlr,num_checkagainst_holder,num_tests,
+     %     num_success,epsilon,testname)
 
 
       vh(1,4) = 0.01477548327 ! AU/day
       vh(1,5) = 0.0
-      xh(1,4) = xh(1,5) - 1.35E-5
-      xh(2,4) = xh(2,5) - 1.0E-5
+      xh(1,4) = xh(1,5) - 1.35d-5
+      xh(2,4) = xh(2,5) - 1.0d-5
       xh(3,4) = xh(3,5)
 
       write(*,"(A30)") "---------------------------"
@@ -171,8 +176,9 @@ c      write(*,"(A20,E20.7, E15.7)") "  phys radii: ", rphys(4), m(4)
       call int_checker(coltype_num,4,num_tests,
      %     num_success,testname)
       testname = "erosive disruption: mlr"
-      call float_checker(mlr,5.60270432701e-07,num_tests,
-     %     num_success,1.e-6,testname)
+      num_checkagainst_holder = 5.60270432701d-07
+      call float_checker(mlr,num_checkagainst_holder,num_tests,
+     %     num_success,epsilon,testname)
 
       vh(1,4) = 0.01377548327 ! AU/day
 
@@ -183,12 +189,13 @@ c      write(*,"(A20,E20.7, E15.7)") "  phys radii: ", rphys(4), m(4)
       call int_checker(coltype_num,5,num_tests,
      %     num_success,testname)
       testname = "partial accretion: mlr"
-      call float_checker(mlr,5.76169157685e-07,num_tests,
-     %     num_success,1.e-6,testname)
+      num_checkagainst_holder = 5.76169157685d-07
+      call float_checker(mlr,num_checkagainst_holder,num_tests,
+     %     num_success,epsilon,testname)
 
       vh(1,4) = 0.01507548327 ! AU/day
       vh(1,5) = 0.0
-      xh(1,4) = xh(1,5) - 1.245E-5
+      xh(1,4) = xh(1,5) - 1.245d-5
 
       write(*,"(A30)") "---------------------------"
       call mce_coll_frag(0.,0.,elost,0.,4,5,nbod,nbig,
@@ -197,10 +204,11 @@ c      write(*,"(A20,E20.7, E15.7)") "  phys radii: ", rphys(4), m(4)
       call int_checker(coltype_num,5,num_tests,
      %     num_success,testname)
       testname = "partial accretion, triple point: mlr"
-      call float_checker(mlr,5.73939331687e-07,num_tests,
-     %     num_success,1.e-6,testname)
+      num_checkagainst_holder = 5.73939331687d-07
+      call float_checker(mlr,num_checkagainst_holder,num_tests,
+     %     num_success,epsilon,testname)
 
-      xh(1,4) = xh(1,5) - 1.210E-5
+      xh(1,4) = xh(1,5) - 1.210d-5
 
       write(*,"(A30)") "---------------------------"
       call mce_coll_frag(0.,0.,elost,0.,4,5,nbod,nbig,
@@ -209,8 +217,9 @@ c      write(*,"(A20,E20.7, E15.7)") "  phys radii: ", rphys(4), m(4)
       call int_checker(coltype_num,2,num_tests,
      %     num_success,testname)
       testname = "hit and run, triple point: mlr"
-      call float_checker(mlr,0.,num_tests,
-     %     num_success,1.e-6,testname)
+      num_checkagainst_holder = 0.
+      call float_checker(mlr,num_checkagainst_holder,num_tests,
+     %     num_success,epsilon,testname)
 
       vh(1,4) = 0.01597548327 ! AU/day
 
@@ -221,8 +230,9 @@ c      write(*,"(A20,E20.7, E15.7)") "  phys radii: ", rphys(4), m(4)
       call int_checker(coltype_num,4,num_tests,
      %     num_success,testname)
       testname = "erosive disruption, triple point: mlr"
-      call float_checker(mlr,5.66574205836e-07,num_tests,
-     %     num_success,1.e-6,testname)
+      num_checkagainst_holder = 5.66574205836d-07
+      call float_checker(mlr,num_checkagainst_holder,num_tests,
+     %     num_success,epsilon,testname)
 
       vh(1,4) = 0.0371 ! AU/day
 
@@ -233,8 +243,9 @@ c      write(*,"(A20,E20.7, E15.7)") "  phys radii: ", rphys(4), m(4)
       call int_checker(coltype_num,3,num_tests,
      %     num_success,testname)
       testname = "supercat, close to boundary: mlr"
-      call float_checker(mlr,6.6874349086e-08,num_tests,
-     %     num_success,1.e-6,testname)
+      num_checkagainst_holder = 6.6874349086d-08
+      call float_checker(mlr,num_checkagainst_holder,num_tests,
+     %     num_success,epsilon,testname)
 
 
 
@@ -343,7 +354,9 @@ c
 c     -1 is central collision, 1 is perfect merger, 2 is hit & run
 c     3 is supercatastrophic disruption, 4 is erosive disruption, 5 is partial accretion
 
-      real*8 m_target, m_proj,r_target,r_proj
+      real*8 m_target, m_proj,r_target,r_proj,THIRD
+
+      parameter (THIRD = .3333333333333333d0)
 
 c     calculate rho in proper units, mercury units
       rhocgs = AU * AU * AU  / MSUN
@@ -448,18 +461,18 @@ c        write(*,"(ES14.7E2)") r_proj
      %   vrel(3))**2 / ( (xrel(1)*xrel(1) + xrel(2)*xrel(2) + xrel(3)*
      %   xrel(3) ) * vrel_magnitude_squared ) ! Used for next calculation
 
-        b_ = sqrt(1.0 - costheta_squared) ! Impact parameter, sin(theta)
+        b_ = sqrt(1.0d0 - costheta_squared) ! Impact parameter, sin(theta)
 c        write(*,"(A6,F8.6)") "  b_: ", b_
-        l_ = (rphys(i) + rphys(j)) * (1.0 - b_) ! length (absolute in CGS) of projecticle that overlaps the target
-        alpha = (3.0*rphys(j)*(l_*l_) - (l_*l_*l_))/(4.0*(rphys(j)*
+        l_ = (rphys(i) + rphys(j)) * (1.0d0 - b_) ! length (absolute in CGS) of projecticle that overlaps the target
+        alpha = (3.0d0*rphys(j)*(l_*l_) - (l_*l_*l_))/(4.0d0*(rphys(j)*
      %       rphys(j)*rphys(j) )) ! Intersecting mass fraction
 
-        if (rphys(i).gt.(b_*(rphys(i)+rphys(j) ) +rphys(j)) ) alpha=1.0 !Maximum alpha
+        if (rphys(i).gt.(b_*(rphys(i)+rphys(j) ) +rphys(j)) )alpha=1.0d0 !Maximum alpha
         M_ = m(i) + alpha*m(j)  !mass of target + interacting mass of projectile
-        R_ = ( (3.*M_)/(4.*PI*rhoforall_mercunits) )**(1./3.) !radius that target + interacting mass would have
-        vesc_squared = 2.*K2*M_/R_ !escape velocity of target + interacting mass eq. 53
+        R_ = ( (3.d0*M_)/(4.d0*PI*rhoforall_mercunits) )**(THIRD) !radius that target + interacting mass would have
+        vesc_squared = 2.0d0*K2*M_/R_ !escape velocity of target + interacting mass eq. 53
         write(*,"(A6,F12.1)") "Vesc: ",
-     %   sqrt(vesc_squared)*AU/(24.0*3600.0)
+     %   sqrt(vesc_squared)*AU/(86400.0d0)
         if (vrel_magnitude_squared.lt.vesc_squared) then
            call mce_merg (jcen,i,j,nbod,nbig,m,xh,vh,s,stat,elost)
            collision_type = 1
@@ -474,28 +487,28 @@ c        write(*,"(A6,F8.6)") "  b_: ", b_
            endif
 c           write(*,"(I3)") graze
            
-           rc1 = (3.0*mtot/(4.*PI*rho1))**(1./3.) !radius of all mass if rho = 1
-           qpd = cstar*4.0/5.0*PI*rho1*K2*rc1*rc1 !eq. 28, specific
+           rc1 = (3.0d0*mtot/(4.d0*PI*rho1))**(THIRD) !radius of all mass if rho = 1
+           qpd = cstar*0.8d0*PI*rho1*K2*rc1*rc1 !eq. 28, specific
 c           ! impact energy when mt=mp
-           vpd = sqrt(32.*PI*cstar*rho1*K2/5.)*rc1 !eq. 30, vel version of above
+           vpd = sqrt(6.4d0*PI*cstar*rho1*K2)*rc1 !eq. 30, vel version of above
            mu  = (m(i) * m(j) / mtot) ! reduced mass
            muint = alpha*m(i)*m(j)/(m(i) + alpha*m(j))
 
-           qrdstar = qpd*(   (((gamma+1.0)*(gamma+1.0))/(4.0*
-     %          gamma))**(2.0/(3.0*mubar)-1.0)   )
+           qrdstar = qpd*(   (((gamma+1.0d0)*(gamma+1.0d0))/(4.0d0*
+     %          gamma))**(2.0d0/(3.0d0*mubar)-1.0d0)   )
 c           eq. 23, specific impact energy-catastrophic disruption threshold
-           vstar = vpd*(    (((gamma+1.0)*(gamma+1.0))/(4.0*
-     %          gamma))**(1.0/(3.0*mubar))    )
+           vstar = vpd*(    (((gamma+1.0d0)*(gamma+1.0d0))/(4.0d0*
+     %          gamma))**(1.0d0/(3.0d0*mubar))    )
 c     eq. 22, velocity at catastrophic disruption threshold
 
-           qrdstarprime = qrdstar* (mu/muint)**(2.-(1.5*mubar))
+           qrdstarprime = qrdstar* (mu/muint)**(2.0d0-(1.5d0*mubar))
 c eq. 15, specific impact energy at catastrophic disruption threshold for oblique (b>0) impacts
-           vstarprime = sqrt(2.*qrdstarprime*mtot/mu)
+           vstarprime = sqrt(2.0d0*qrdstarprime*mtot/mu)
 c     eq. 16, impact velocity at catastrophic disruption threshold for oblique (b>0) impacts
 
-           qrer = qrdstarprime*((-2.*m(i)/mtot)+2.0)
+           qrer = qrdstarprime*((-2.0d0*m(i)/mtot)+2.0d0)
 c  eq. 5(rearranged), specific impact energy at erosion threshold
-           ver_squred = 2.0*qrer*mtot/mu
+           ver_squred = 2.0d0*qrer*mtot/mu
 c     eq. 1(rearranged), velocity at erosion threshold
 
            if (graze.eq.1.and.vrel_magnitude_squared.lt.ver_squred) then
@@ -503,49 +516,49 @@ c     In this case, hit and run regime. Target intact but projectile may be disr
               collision_type = 2
 
               if (gamma.le.0.5) then !do a backwards calculation
-                 phidag = 2.0 * acos((l_-rphys(j))/rphys(j))
+                 phidag = 2.0d0 * acos((l_-rphys(j))/rphys(j))
                  Aintdag= rphys(j)*rphys(j)*(PI-(phidag-
-     %             sin(phidag))/2.0) !eq. 46
-                 Lintdag = 2.0*sqrt(rphys(i)*rphys(i)-(rphys(i)-l_/2.0)*
-     %            (rphys(i)-l_/2.0))  !eq. 47
+     %             sin(phidag))*0.5d0) !eq. 46
+                 Lintdag = 2.0d0*sqrt(rphys(i)*rphys(i)-(rphys(i)-l_*
+     %           0.5d0)* (rphys(i)-l_/2.0))  !eq. 47
                  Mintdag = Aintdag*Lintdag*rhoforall_mercunits	 !eq. 48
                  alphadag = Mintdag/m(i)
-                 if (alphadag.lt.0.0) alphadag = 1.
+                 if (alphadag.lt.0.0) alphadag = 1.0d0
                  if (rphys(i).gt.(b_*rphys(j)+rphys(i)) + rphys(j)) then
                      write(*,"(A46)") "H&R ERROR: projectile fully
      % in target shadow!"
                  end if
                  mtotdag = Mintdag + m(j)
-                 rc1dag =(3.0*(mtotdag)/(4.*PI*rho1))**(1./3.)
-                 qpddag = cstar*4.0/5.0*PI*rho1*K2*rc1dag*rc1dag
-                 vpddag = sqrt(32.0*PI*cstar*rho1*K2/5.0)*rc1dag
+                 rc1dag =(3.0d0*(mtotdag)/(4.0d0*PI*rho1))**(THIRD)
+                 qpddag = cstar*0.8d0*PI*rho1*K2*rc1dag*rc1dag
+                 vpddag = sqrt(6.4d0*PI*cstar*rho1*K2)*rc1dag
                  muintdag = alphadag*m(i)*m(j)/(alphadag*m(i) + m(j))
                  gammadag = Mintdag/m(j)
-                 qrdstardag = qpd*(0.25*(gammadag + 1.0)*(gammadag + 
-     %             1.0)/gammadag)**(2.0/(3.0*mubar)-1.0) !eq. 52
-                 vrdstardag = vpd*(0.25*(gammadag+1.0)*(gammadag + 
-     %             1.0)/gammadag)**(1.0/(3.0*mubar)) !eq. 51
+                 qrdstardag = qpd*(0.25d0*(gammadag + 1.0d0)*(gammadag + 
+     %             1.0d0)/gammadag)**(2.0d0/(3.0d0*mubar)-1.0d0) !eq. 52
+                 vrdstardag = vpd*(0.25d0*(gammadag+1.0d0)*(gammadag + 
+     %             1.0d0)/gammadag)**(1.0d0/(3.0d0*mubar)) !eq. 51
 
 
                  qrdstarprimedag = qrdstardag !in backwards case
-                 vstarprimedag = sqrt(2.0*qrdstarprimedag*
+                 vstarprimedag = sqrt(2.0d0*qrdstarprimedag*
      %             mtotdag/muintdag)
 
-                 qrerdag = qrdstarprimedag*(-2.0*(m(j)/mtotdag)+2.0)
-                 verdag = sqrt(2.0*qrerdag*mtotdag/muintdag)
+                 qrerdag = qrdstarprimedag*(-2.0d0*(m(j)/mtotdag)+2.0d0)
+                 verdag = sqrt(2.0d0*qrerdag*mtotdag/muintdag)
                  
-                 qsupercatdag = 1.8*qrdstarprimedag
-                 vsupercatdag = sqrt(2.*qsupercatdag*mtotdag/muintdag)
+                 qsupercatdag = 1.8d0*qrdstarprimedag
+                 vsupercatdag= sqrt(2.0d0*qsupercatdag*mtotdag/muintdag)
                  mudag=muintdag
 
               else  ! Do a forward calculation
 
                  mudag = mu
                  mtotdag=mtot
-                 alphadag = (3.0*rphys(i)*(l_*l_) - 
-     %            (l_*l_*l_))/(4.0*(rphys(i)*rphys(i)*rphys(i)))
+                 alphadag = (3.0d0*rphys(i)*(l_*l_) - 
+     %            (l_*l_*l_))/(4.0d0*(rphys(i)*rphys(i)*rphys(i)))
                  Mintdag = alphadag*m(i)
-                 if (alphadag.lt.0.0) alphadag = 1.
+                 if (alphadag.lt.0.0) alphadag = 1.0d0
                  if (rphys(i).gt.(b_*rphys(j)+rphys(i)) + rphys(j)) then
                     write(*,"(A46)") "H&R ERROR: projectile fully
      % in target shadow!"
@@ -553,25 +566,26 @@ c     In this case, hit and run regime. Target intact but projectile may be disr
                  muintdag = alphadag*m(i)*m(j)/(alphadag*m(i) + m(j))
               
                  gammadag = m(i)/m(j)
-                 qrdstardag = qpd*(0.25*(gammadag + 1.0)*(gammadag+1.0)/
-     %             gammadag)**(2.0/(3.0*mubar)-1.0) !eq. 52
-                 vrdstardag = vpd*(0.25*(gammadag+1.0)*(gammadag+1.0)/
-     %             gammadag)**(1.0/(3.0*mubar)) !eq. 51
+                 qrdstardag = qpd*(0.25d0*(gammadag + 1.0d0)*(gammadag+
+     %             1.0d0)/
+     %             gammadag)**(2.0d0/(3.0d0*mubar)-1.0d0) !eq. 52
+                 vrdstardag = vpd*(0.25d0*(gammadag+1.0d0)*(gammadag+
+     %             1.0d0)/gammadag)**(1.0d0/(3.0d0*mubar)) !eq. 51
               
-                 qrdstarprimedag = (mu/muintdag)**(2.-3.*mubar/2.)*
-     %             qrdstardag
-                 vstarprimedag = sqrt(2.*qrdstarprimedag*mtot/mu)
+                 qrdstarprimedag = (mu/muintdag)**(2.0d0-3.0d0*mubar/
+     %             2.0d0)*qrdstardag
+                 vstarprimedag = sqrt(2.0d0*qrdstarprimedag*mtot/mu)
               
-                 qrerdag = qrdstarprimedag*(-2.*(m(j)/mtot)+2.)
-                 verdag_squred = 2.*qrerdag*mtot/mu
+                 qrerdag = qrdstarprimedag*(-2.0d0*(m(j)/mtot)+2.0d0)
+                 verdag_squred = 2.0d0*qrerdag*mtot/mu
               
-                 qsupercatdag = 1.8*qrdstarprimedag
-                 vsupercatdag_squred = 2.*qsupercatdag*mtot/mu
+                 qsupercatdag = 1.8d0*qrdstarprimedag
+                 vsupercatdag_squred = 2.0d0*qsupercatdag*mtot/mu
 
               end if            ! gamma <= 0.5, do a backwards calculation
 
               if (vrel_magnitude_squared.gt.verdag_squred) then !if in erosive regime
-                 qrdag = 0.5*mudag*vrel_magnitude_squared/mtotdag !specific impact energy in COM frame
+                 qrdag = 0.5d0*mudag*vrel_magnitude_squared/mtotdag !specific impact energy in COM frame
                  if (vrel_magnitude_squared.gt.vsupercatdag_squred) then !if in super-cat regime projectile is destroyed
                     continue
 c                    sys.stdout.write("SUPER-CAT\n")
@@ -599,25 +613,25 @@ c                 hit_and_run = 1	#solution is a hit and run
 
 
            else  ! If not hit and run regime
-              qsupercat = 1.8*qrdstarprime ! super-cat specific impact energy
-              vsupercat_squred = 2.0*qsupercat*mtot/mu ! super-cat impact velocity
+              qsupercat = 1.8d0*qrdstarprime ! super-cat specific impact energy
+              vsupercat_squred = 2.0d0*qsupercat*mtot/mu ! super-cat impact velocity
 c              write(*,"(A19,E20.7)") "V_supercat: ", 
 c     %         sqrt(vsupercat_squred)*AU/(24.0*3600.0)
               if (vrel_magnitude_squared.gt.ver_squred) then
-                 qr = 0.5*mu*vrel_magnitude_squared/mtot
+                 qr = 0.5d0*mu*vrel_magnitude_squared/mtot
                  if (vrel_magnitude_squared.gt.vsupercat_squred) then
                     collision_type = 3
-                    eta = -1.5 !exponent in power-law of fragment size distribution (super-cat regime)
-                    mlr = mtot*0.1/(1.8**eta)*(qr/qrdstarprime)**eta !mass of largest remnant
+                    eta = -1.5d0 !exponent in power-law of fragment size distribution (super-cat regime)
+                    mlr = mtot*0.1d0/(1.8d0**eta)*(qr/qrdstarprime)**eta !mass of largest remnant
                  else
                     collision_type = 4
-                    mlr = mtot*(-0.5*(qr/qrdstarprime - 1.) + 0.5) !mass of largest remnant	
+                    mlr = mtot*(-0.5d0*(qr/qrdstarprime - 1.0d0)+ 0.5d0) !mass of largest remnant	
                  end if         ! this if is checking erosion case, supercat or not
                  
               else
                  collision_type = 5 ! partial accretion
-                 qr = 0.5*mu*vrel_magnitude_squared/mtot !specific impact energy in COM frame
-                 mlr = mtot*(-0.5*(qr/qrdstarprime - 1) + 0.5) ! mass of largest remnant
+                 qr = 0.5d0*mu*vrel_magnitude_squared/mtot !specific impact energy in COM frame
+                 mlr = mtot*(-0.5d0*(qr/qrdstarprime - 1.0d0) + 0.5d0) ! mass of largest remnant
 
               end if ! this if is checking if erosion regime or not
               
@@ -1134,13 +1148,21 @@ c         write(*,"(A8)") "--------"
       real*8  epsilon
       character*100 testname
 
-      if ( (abs(floattocheck - floattocheckagainst)/
+      write(*,"(E12.5,E12.5,E12.5,E12.5)") floattocheck,
+     % floattocheckagainst,
+     % abs(floattocheck - floattocheckagainst)/
+     % floattocheckagainst, epsilon
+
+      if ( (floattocheck - floattocheckagainst).eq.(0.0)) then 
+         numberoftests = numberoftests + 1
+         numberofsuccess = numberofsuccess + 1
+      elseif ( (abs(floattocheck - floattocheckagainst)/
      % floattocheckagainst).lt.epsilon) then
          numberoftests = numberoftests + 1
          numberofsuccess = numberofsuccess + 1
       else
          numberoftests = numberoftests + 1
-         write(*,"(A26,A20)" ) "*****  Failed test! Name: ", testname
+         write(*,"(A26,A40)" ) "*****  Failed test! Name: ", testname
 c         write(*,"(A8)") "--------"
          write(*,"(A4,E12.5,A8,E12.5)") "    ",floattocheck," is not ", 
      %   floattocheckagainst
