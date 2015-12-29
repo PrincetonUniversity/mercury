@@ -30,12 +30,12 @@ c
       parameter (NMESS = 200)
       parameter (HUGE = 9.9d29)
       parameter (NFILES = 50)
-      parameter (cstar = 5.0)
-      parameter (mubar = 0.37)
-      parameter (rho1_cgs = 1.0)
-      parameter (G__ = 6.673e-8)
-      parameter (beta = 2.85)
-      parameter (rho_forall = 3.0)
+      parameter (cstar = 5.0d0)
+      parameter (mubar = 0.37d0)
+      parameter (rho1_cgs = 1.0d0)
+      parameter (G__ = 6.673d-8)
+      parameter (beta = 2.85d0)
+      parameter (rho_forall = 3.0d0)
 c
 c------------------------------------------------------------------------------
 c
