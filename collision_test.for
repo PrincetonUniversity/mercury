@@ -323,6 +323,7 @@ c this function is called in a loop from do k=1, nhit
 
       implicit none
       include 'mercury.inc'
+      include 'particle_min_mass.inc'
 
 c Input/Output
       integer i,j,nbod,nbig,stat(nbod),opt(8),lmem(NMESS),coltype_num
@@ -492,15 +493,15 @@ c           write(*,"(I3)") graze
            
            rc1 = (3.0d0*mtot/(4.d0*PI*rho1))**(THIRD) !radius of all mass if rho = 1
 c           write(*,"(A20,E15.8)") "   hhhh:rc1: ", rc1
-           qpd = cstar*0.8d0*PI*rho1*K2*rc1*rc1 !eq. 28, specific
+           qpd = cstar*0.8d0*PI*rho1*K2*rc1*rc1 !eq. 28, specific !Chambers eq. 3
 c           ! impact energy when mt=mp
-           vpd = sqrt(6.4d0*PI*cstar*rho1*K2)*rc1 !eq. 30, vel version of above
+c           vpd = sqrt(6.4d0*PI*cstar*rho1*K2)*rc1 !eq. 30, vel version of above
 c           write(*,"(A20,E15.8)") "   hhhh:vpd: ", vpd
            mu  = (m(i) * m(j) / mtot) ! reduced mass
            muint = alpha*m(i)*m(j)/(m(i) + alpha*m(j))
 
            qrdstar = qpd*(   (((gamma+1.0d0)*(gamma+1.0d0))/(4.0d0*
-     %          gamma))**(2.0d0/(3.0d0*mubar)-1.0d0)   )
+     %          gamma))**(2.0d0/(3.0d0*mubar)-1.0d0)   )  !Maybe Chambers eq. 5?
 c           eq. 23, specific impact energy-catastrophic disruption threshold
 c           vstar = vpd*(    (((gamma+1.0d0)*(gamma+1.0d0))/(4.0d0*
 c     %          gamma))**(1.0d0/(3.0d0*mubar))    )
@@ -534,15 +535,15 @@ c     In this case, hit and run regime. Target intact but projectile may be disr
      % in target shadow!"
                  end if
                  mtotdag = Mintdag + m(j)
-                 rc1dag =(3.0d0*(mtotdag)/(4.0d0*PI*rho1))**(THIRD)
-                 qpddag = cstar*0.8d0*PI*rho1*K2*rc1dag*rc1dag
-                 vpddag = sqrt(6.4d0*PI*cstar*rho1*K2)*rc1dag
+c                 rc1dag =(3.0d0*(mtotdag)/(4.0d0*PI*rho1))**(THIRD)
+c                 qpddag = cstar*0.8d0*PI*rho1*K2*rc1dag*rc1dag
+c                 vpddag = sqrt(6.4d0*PI*cstar*rho1*K2)*rc1dag
                  muintdag = alphadag*m(i)*m(j)/(alphadag*m(i) + m(j))
                  gammadag = Mintdag/m(j)
                  qrdstardag = qpd*(0.25d0*(gammadag + 1.0d0)*(gammadag + 
      %             1.0d0)/gammadag)**(2.0d0/(3.0d0*mubar)-1.0d0) !eq. 52
-                 vrdstardag = vpd*(0.25d0*(gammadag+1.0d0)*(gammadag + 
-     %             1.0d0)/gammadag)**(1.0d0/(3.0d0*mubar)) !eq. 51
+c                 vrdstardag = vpd*(0.25d0*(gammadag+1.0d0)*(gammadag + 
+c     %             1.0d0)/gammadag)**(1.0d0/(3.0d0*mubar)) !eq. 51
 
 
                  qrdstarprimedag = qrdstardag !in backwards case
@@ -550,10 +551,11 @@ c                 vstarprimedag = sqrt(2.0d0*qrdstarprimedag*
 c     %             mtotdag/muintdag)
 
                  qrerdag = qrdstarprimedag*(-2.0d0*(m(j)/mtotdag)+2.0d0)
-                 verdag = sqrt(2.0d0*qrerdag*mtotdag/muintdag)
+c                 verdag = sqrt(2.0d0*qrerdag*mtotdag/muintdag)
                  
                  qsupercatdag = 1.8d0*qrdstarprimedag
-                 vsupercatdag= sqrt(2.0d0*qsupercatdag*mtotdag/muintdag)
+                 vsupercatdag_squred = 2.0d0*
+     %              qsupercatdag*mtotdag/muintdag
                  mudag=muintdag
 
               else  ! Do a forward calculation
@@ -574,8 +576,8 @@ c     %             mtotdag/muintdag)
                  qrdstardag = qpd*(0.25d0*(gammadag + 1.0d0)*(gammadag+
      %             1.0d0)/
      %             gammadag)**(2.0d0/(3.0d0*mubar)-1.0d0) !eq. 52
-                 vrdstardag = vpd*(0.25d0*(gammadag+1.0d0)*(gammadag+
-     %             1.0d0)/gammadag)**(1.0d0/(3.0d0*mubar)) !eq. 51
+c                 vrdstardag = vpd*(0.25d0*(gammadag+1.0d0)*(gammadag+
+c     %             1.0d0)/gammadag)**(1.0d0/(3.0d0*mubar)) !eq. 51
               
                  qrdstarprimedag = (mu/muintdag)**(2.0d0-3.0d0*mubar/
      %             2.0d0)*qrdstardag
@@ -601,6 +603,12 @@ c                    mslr = mtotdag*0.1/math.pow(1.8,eta)*math.pow((qrdag/qrdsta
 c                    sys.stdout.write("DISRUPTED\n")
 c                     mslr = mtotdag*(-0.5*(qrdag/qrdstardag -1.)+0.5)
                  end if !checking if was in supercat regime
+
+c Since it doesn't matter whether super-cat or disrupted for the approximation I'm taking, 
+c which approximation is that the whole remaining mass gets split up into chunks, I do
+c this here
+                 ! First, we ...
+c                 num_fragments = floor(m(j)/MINMASS)
               else
                     continue
 c                 sys.stdout.write("INTACT\n")
@@ -618,8 +626,8 @@ c                 hit_and_run = 1	#solution is a hit and run
 
 
            else  ! If not hit and run regime
-              qsupercat = 1.8d0*qrdstarprime ! super-cat specific impact energy
-              vsupercat_squred = 2.0d0*qsupercat*mtot/mu ! super-cat impact velocity
+              qsupercat = 1.8d0*qrdstarprime ! super-cat specific impact energy !
+              vsupercat_squred = 2.0d0*qsupercat*mtot/mu ! super-cat impact velocity !
 c              write(*,"(A19,E20.7)") "V_supercat: ", 
 c     %         sqrt(vsupercat_squred)*AU/(24.0*3600.0)
               if (vrel_magnitude_squared.gt.ver_squred) then
@@ -1119,7 +1127,74 @@ c       For the checker test, the function that does the checking
 c
 
 
-      subroutine add_particle(m,xh,vh,rho,epoch,stat,id,ce,nbod,nbig)
+      subroutine add_particle(m,xh,vh,rho,epoch,stat,id,nbod,nbig,
+     % new_particle_mass,new_particle_xh,new_particle_vh,
+     % new_particle_rho,new_particle_epoch,new_particle_id)
+
+      implicit none
+      include 'mercury.inc'
+
+      integer stat(NMAX),nbod,nbig
+      real*8 m(NMAX),xh(3,NMAX),vh(3,NMAX),rho(NMAX),epoch(NMAX)
+      real*8 new_particle_mass,new_particle_xh(3),new_particle_vh(3)
+      real*8 new_particle_rho,new_particle_epoch
+      character*8 id(NMAX),new_particle_id
+
+      nbod = nbod + 1
+      nbig = nbig + 1 !Since there are now more particles
+      if (nbod.gt.NMAX) then
+         write(*,"(A39)") "Oh no!  The unthinkable has happened!"
+         write(*,"(A40)") "nbod has exceeded NMAX!  Now quitting."
+         stop
+      end if
+      m(nbod)    = new_particle_mass
+      xh(1,nbod) = new_particle_xh(1)
+      xh(2,nbod) = new_particle_xh(2)
+      xh(3,nbod) = new_particle_xh(3)
+      vh(1,nbod) = new_particle_vh(1)
+      vh(2,nbod) = new_particle_vh(2)
+      vh(3,nbod) = new_particle_vh(3)
+      rho(nbod)  = new_particle_rho
+      epoch(nbod)= new_particle_epoch
+      id(nbod)   = new_particle_id
+      stat(nbod) = 0
+
+
+      return
+      end
+
+      subroutine id_giver_and_tracker(id_return_through_here)
+
+      implicit none
+
+      integer id_state, id_return_through_here 
+      data id_state /250/
+      save id_state
+      id_return_through_here = id_state
+      id_state = id_state + 1
+
+      return
+      end
+
+
+      subroutine centerofmass_calculator(i,j,m,xh,vh,x_com,v_com)
+      implicit none
+      include 'mercury.inc'
+
+      integer i,j
+      real*8 m(NMAX),xh(3,NMAX),vh(3,NMAX)
+      real*8 x_com(3),v_com(3)
+
+      x_com(1) = (m(i)*xh(1,i) + m(j)*xh(1,j))/(m(i) + m(j))
+      x_com(2) = (m(i)*xh(2,i) + m(j)*xh(2,j))/(m(i) + m(j))
+      x_com(3) = (m(i)*xh(3,i) + m(j)*xh(3,j))/(m(i) + m(j))
+
+      v_com(1) = (m(i)*vh(1,i) + m(j)*vh(1,j))/(m(i) + m(j))
+      v_com(2) = (m(i)*vh(2,i) + m(j)*vh(2,j))/(m(i) + m(j))
+      v_com(3) = (m(i)*vh(3,i) + m(j)*vh(3,j))/(m(i) + m(j))
+      return
+      end
+      
 
 
 
