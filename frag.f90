@@ -104,7 +104,7 @@
     module swift
       use kinds
 ! Maximum array size
-     integer(I4), parameter::NPLMAX = 202  ! max number of planets, including the Sun 
+     integer(I4), parameter::NPLMAX = 2048  ! max number of planets, including the Sun 
      integer(I4), parameter::NTPMAX = 2048 ! max number of test particles
 ! Size of the test particle status flag
       integer(I4), parameter::NSTAT = 3
@@ -3807,8 +3807,8 @@
           temp = time  +  time_bs
           call check_encounters (temp,dt_bs,ncrit,ncrit_big,mbs,x0,v0,xbs,vbs,radbs, &
             rcebs,namebs,nclo,clo,nhit,hit)
-          if (nclo > 0) call output_encounters (ncrit,ncrit_big,rhobs,statusbs, &
-              indexbs,namebs,nclo,clo)
+          if (nhit > 0) call output_encounters (ncrit,ncrit_big,rhobs,statusbs, &
+              indexbs,namebs,nhit,hit)
 !
 ! Resolve any collisions that occurred
           if (nhit > 0.and.opt_collisions) then
