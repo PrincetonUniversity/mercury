@@ -6,9 +6,11 @@ aaa.for
 *.clo
 *.aei
 *.gnu
+*.mod
 element6
 mercury6
 close6
+frag_f90
 *~
 
 code_pdfs
