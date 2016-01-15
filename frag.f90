@@ -4441,8 +4441,8 @@
       header(39:46) = calc_float_string (j6 / rcen**6)
       header(47:54) = calc_float_string (rcen)
       header(55:62) = calc_float_string (rmax)
-      write (21,'(a1,a2,i2,a62)') char(12),'7a',algor,header(1:62)
-      write (22,'(a1,a2,i2,a62)') char(12),'7a',algor,header(1:62)
+      write (21,'(a1,a2,i2,a62,i1)') char(12),'7a',algor,header(1:62),3 !The 3 here on this line and the next are to specify precision for the element6 and close6 codes
+      write (22,'(a1,a2,i2,a62,i1)') char(12),'7a',algor,header(1:62),3
 !
 ! For each new body, write its index number, name and density 
       do i = 1, n
@@ -4503,21 +4503,28 @@
       call calc_spherical_polars (s(:,i), s1, stheta, sphi)
 !
       c(1:8)   = calc_real_string  (dble(index(i)), ZERO, INDEX_MAX)
-      c(4:11)  = calc_float_string (m(i))
-      c(12:19) = calc_float_string (rho(i))
+!      c(4:11)  = calc_float_string (m(i))
+!      c(11:18) = calc_float_string (rho(i))
 !
-      c(20:27) = calc_float_string (r1)
-      c(28:35) = calc_real_string  (theta,  -PIBY2, PIBY2)
-      c(35:42) = calc_real_string  (phi,    ZERO, TWOPI)
+      c(4:11) = calc_float_string (r1)
+      c(11:18) = calc_real_string  (theta,  -PIBY2, PIBY2)
+      c(18:25) = calc_real_string  (phi,    ZERO, TWOPI)
 !
-      c(42:49) = calc_float_string (v1)
-      c(50:57) = calc_real_string  (vtheta, -PIBY2, PIBY2)
-      c(57:64) = calc_real_string  (vphi,   ZERO, TWOPI)
+      c(25:32) = calc_float_string (v1)
+      c(32:39) = calc_real_string  (vtheta, -PIBY2, PIBY2)
+      c(39:46) = calc_real_string  (vphi,   ZERO, TWOPI)
+!      c(18:25) = calc_float_string (r1)
+!      c(25:32) = calc_real_string  (theta,  -PIBY2, PIBY2)
+!      c(32:39) = calc_real_string  (phi,    ZERO, TWOPI)
 !
-      c(64:71) = calc_float_string (s1)
-      c(72:79) = calc_real_string  (stheta, -PIBY2, PIBY2)
-      c(79:85) = calc_real_string  (sphi,   ZERO, TWOPI)
-      write (21,'(a85)') c(1:85)
+!      c(39:46) = calc_float_string (v1)
+!      c(46:53) = calc_real_string  (vtheta, -PIBY2, PIBY2)
+!      c(53:60) = calc_real_string  (vphi,   ZERO, TWOPI)
+!
+!      c(64:71) = calc_float_string (s1)
+!      c(72:79) = calc_real_string  (stheta, -PIBY2, PIBY2)
+!      c(79:85) = calc_real_string  (sphi,   ZERO, TWOPI)
+      write (21,'(a46)') c(1:46)
     end do
 !
     close (21)
