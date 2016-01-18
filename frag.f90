@@ -714,12 +714,13 @@
     end interface
 !
     interface
-      subroutine output_codes (n,nbig,status,index,name)
+      subroutine output_codes (n,nbig,status,index,name,m)
       use kinds
       integer(I4),  intent(in)::n,nbig
       character(8), intent(in)::name(:)
       character(5), intent(in)::status(:)
       integer(I4),  intent(inout)::index(:)
+      real(R8),     intent(in)::m(:)
       end subroutine output_codes
     end interface
 !
@@ -733,7 +734,7 @@
     end interface
 !
     interface
-      subroutine output_encounters (n,nbig,rho,status,index,name,nclo,clo)
+      subroutine output_encounters (n,nbig,rho,status,index,name,nclo,clo,m)
       use kinds
       integer(I4) , intent(in)::n,nbig,nclo
       real(R8),     intent(in)::rho(:)
@@ -741,6 +742,7 @@
       character(5), intent(in)::status(:)
       type(encounter), intent(in)::clo(:)
       integer(I4),  intent(inout)::index(:)
+      real(R8),     intent(in)::m(:)
       end subroutine output_encounters
     end interface
 !
@@ -3808,7 +3810,7 @@
           call check_encounters (temp,dt_bs,ncrit,ncrit_big,mbs,x0,v0,xbs,vbs,radbs, &
             rcebs,namebs,nclo,clo,nhit,hit)
           if (nhit > 0) call output_encounters (ncrit,ncrit_big,rhobs,statusbs, &
-              indexbs,namebs,nhit,hit)
+              indexbs,namebs,nhit,hit,m)
 !
 ! Resolve any collisions that occurred
           if (nhit > 0.and.opt_collisions) then
@@ -3863,7 +3865,7 @@
 ! Remove any particles lost during collisions
       if (flag_collision) then
         call remove_dead_bodies (n,nbig,m,x,v,s,ngf,rho,rce_hill,rad,status,index,name)
-        call output_codes (n,nbig,status,index,name)
+        call output_codes (n,nbig,status,index,name,m)
         rcrit(1:n) = calc_rcrit  (dt,n,m,x,v)
         flag_accel = .true.
       end if
@@ -4011,7 +4013,7 @@
 ! Check for close-encounter minima
       call check_encounters(time,dt,n,nbig,m,x0,v0,x,v,rad, &
         rce_hill,name,nclo,clo,nhit,hit)
-      if (nclo > 0) call output_encounters (n,nbig,rho,status,index,name,nclo,clo)
+      if (nclo > 0) call output_encounters (n,nbig,rho,status,index,name,nclo,clo,m)
 !
 ! Remove particles far from the central body, update close encounter limits
       if (abs(time - tfun) >= dtfun) then
@@ -4122,7 +4124,7 @@
 ! Check for close-encounter minima and collisions
       call check_encounters (time,dt,n,nbig,m,x0,v0,x,v,rad,rce_hill, &
         name,nclo,clo,nhit,hit)
-      if (nclo > 0) call output_encounters (n,nbig,rho,status,index,name,nclo,clo)
+      if (nclo > 0) call output_encounters (n,nbig,rho,status,index,name,nclo,clo,m)
 !
 ! Remove any particles lost during collisions
       if (nhit > 0.and.opt_collisions) then
@@ -4132,7 +4134,7 @@
             rcrit,status,index,name)
         end do
         call remove_dead_bodies (n,nbig,m,x,v,s,ngf,rho,rce_hill,rad,status,index,name)
-        call output_codes (n,nbig,status,index,name)
+        call output_codes (n,nbig,status,index,name,m)
         flag_accel = .true.
       end if
 !
@@ -4396,7 +4398,7 @@
 ! Also outputs some global variables relating to the central body.
 ! All output quantities are expressed in CGS units.
 !
-    subroutine output_codes (n,nbig,status,index,name)
+    subroutine output_codes (n,nbig,status,index,name,m)
 !
     use constants;    use globals
     use interfaces, only: calc_float_string, calc_real_string
@@ -4409,6 +4411,8 @@
     integer(I4)::i,nnew_big,nnew_sml
     logical::flag
     character(80)::header,c
+!
+    real(R8),     intent(in)::m(:)
 !------------------------------------------------------------------------------
 ! Determine if any new bodies are present (they will have INDEX = 0)
     nnew_big = 0;      nnew_sml = 0;    flag = .false.
@@ -4432,15 +4436,15 @@
  20   open (22, file=outfile(2), status='old', access='append', err=20)
 !
 ! Write a header line with time, number of bodies and relevant parameters
-      header(1:8)   = calc_float_string (time)
+      header(1:8)   = calc_float_string (time/DAY) !DAY converts to years from who knows what
       header(9:16)  = calc_real_string (dble(nnew_big), ZERO, INDEX_MAX)
       header(12:19) = calc_real_string (dble(nnew_sml), ZERO, INDEX_MAX)
-      header(15:22) = calc_float_string (mcen)
+      header(15:22) = calc_float_string (mcen/MSUN) !MSUN converts to solar masses from grams
       header(23:30) = calc_float_string (j2 / rcen**2)
       header(31:38) = calc_float_string (j4 / rcen**4)
       header(39:46) = calc_float_string (j6 / rcen**6)
-      header(47:54) = calc_float_string (rcen)
-      header(55:62) = calc_float_string (rmax)
+      header(47:54) = calc_float_string (rcen/AU) !AU converts to AU from cm, next line too
+      header(55:62) = calc_float_string (rmax/AU)
       write (21,'(a1,a2,i2,a62,i1)') char(12),'7a',algor,header(1:62),3 !The 3 here on this line and the next are to specify precision for the element6 and close6 codes
       write (22,'(a1,a2,i2,a62,i1)') char(12),'7a',algor,header(1:62),3
 !
@@ -4453,8 +4457,15 @@
    write (23,*) '  adding: ',name(i),index(i)
           c(1:8)   = calc_real_string (dble(index(i)), ZERO, INDEX_MAX)
           c(4:11)  = name(i)
-          write (21,'(a11)') c(1:11)
-          write (22,'(a11)') c(1:11)
+          c(12:19) = calc_float_string (m(i)/MSUN) !MSUN converts to solar masses from grams
+          c(20:27) = calc_float_string (0.0_R8) !zeroes because the spins don't matter for me
+          c(28:35) = calc_float_string (0.0_R8)
+          c(36:43) = calc_float_string (0.0_R8)
+          c(44:51) = calc_float_string (0.0_R8)!rho(i)) Already know rho, don't actually need to print
+!          write (21,'(a11)') c(1:11)
+!          write (22,'(a11)') c(1:11)
+          write(21,'(a51)') c(1:51)
+          write(22,'(a51)') c(1:51)
         end if
       end do
 !
@@ -4485,13 +4496,13 @@
     character(85)::header,c
 !------------------------------------------------------------------------------
 ! Update list of output codes if necessary
-    call output_codes (n,nbig,status,index,name)
+    call output_codes (n,nbig,status,index,name,m)
 !
 ! Open the orbital elements output file
  10 open (21, file=outfile(1), status='old', access='append', err=10)
 !
 ! Write a header line containing the time and number of objects
-    header(1:8)   = calc_float_string (time)
+    header(1:8)   = calc_float_string (time/DAY) !Dividing by DAY puts in years, instead of don't know what
     header(9:16)  = calc_real_string (dble(nbig),     ZERO, INDEX_MAX)
     header(12:19) = calc_real_string (dble(n - nbig), ZERO, INDEX_MAX)
     write (21,'(a1,a2,a14)') char(12),'7b',header(1:14)
@@ -4506,11 +4517,12 @@
 !      c(4:11)  = calc_float_string (m(i))
 !      c(11:18) = calc_float_string (rho(i))
 !
-      c(4:11) = calc_float_string (r1)
+      if (i.eq.1) write(*,*) r1/AU
+      c(4:11) = calc_float_string (r1/AU) !AU converts to AU from cm
       c(11:18) = calc_real_string  (theta,  -PIBY2, PIBY2)
       c(18:25) = calc_real_string  (phi,    ZERO, TWOPI)
 !
-      c(25:32) = calc_float_string (v1)
+      c(25:32) = calc_float_string (v1/AU*DAY) !AU*DAY converts to AU/day from cm/s
       c(32:39) = calc_real_string  (vtheta, -PIBY2, PIBY2)
       c(39:46) = calc_real_string  (vphi,   ZERO, TWOPI)
 !      c(18:25) = calc_float_string (r1)
@@ -4693,7 +4705,7 @@
 ! Writes details of NCLO close encounters to the close-encounter output file.
 ! All output quantities are expressed in CGS units.
 !
-    subroutine output_encounters (n,nbig,rho,status,index,name,nclo,clo)
+    subroutine output_encounters (n,nbig,rho,status,index,name,nclo,clo,m)
 !
     use constants;    use globals
     use interfaces, only: calc_real_string, calc_float_string, &
@@ -4706,12 +4718,14 @@
     type(encounter), intent(in)::clo(:)
     integer(I4),  intent(inout)::index(:)
 !
+    real(R8),     intent(in)::m(:)
+!
     integer(I4)::i,j,k
     real(R8)::r1,v1,theta,phi,vtheta,vphi
     character(120)::c
 !------------------------------------------------------------------------------
 ! Update list of output codes if necessary
-    call output_codes (n,nbig,status,index,name)
+    call output_codes (n,nbig,status,index,name,m)
 !
 ! Open the close encounter output file
  10 open (22, file=outfile(2), status='old', access='append', err=10)

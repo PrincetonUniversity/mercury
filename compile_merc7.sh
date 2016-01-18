@@ -1,0 +1,1 @@
+gfortran -w -o mercury7 frag.f90
