@@ -805,6 +805,17 @@
       end subroutine synch_epochs
     end interface
 !
+
+!!!!!!!! Added by Joshua Wallace
+    interface
+      function mco_x2ov (m,x,v,fr,fv)
+      use kinds
+      real(R8),  intent(in)::m
+      real(R8),  intent(out)::fr,fv
+      real(R8),  intent(in)::x(3),v(3)
+      end function mco_x2ov
+   end interface
+
     end module interfaces
 !==============================================================================
     program mercury7_0
@@ -4517,7 +4528,6 @@
 !      c(4:11)  = calc_float_string (m(i))
 !      c(11:18) = calc_float_string (rho(i))
 !
-      if (i.eq.1) write(*,*) r1/AU
       c(4:11) = calc_float_string (r1/AU) !AU converts to AU from cm
       c(11:18) = calc_real_string  (theta,  -PIBY2, PIBY2)
       c(18:25) = calc_real_string  (phi,    ZERO, TWOPI)
@@ -6779,17 +6789,53 @@
 
 
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!
+!!!!
+!!!!   Added in by Joshua Wallace
+!!!!
+!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
+!==========================================================================
+! The following is borrowed from Mercury 6.2, function mco_x2ov
+! This allows the proper fr and fv values to be calculated 
+! which can be read by element6 and produce the correct output.
 
-
-
-
-
-
-
-
-
-
+      function mco_x2ov (m,x,v,fr,fv)
+      use constants use globals; 
+      implicit none
+! Input/Output
+      real(R8),  intent(in)::m
+      real(R8),  intent(out)::fr,fv
+      real(R8),  intent(in)::x(3),v(3)
+!
+! Local
+      real(R8) r,v2,v1,be,ke,temp
+!
+!------------------------------------------------------------------------------
+!
+        r = sqrt(x(1) * x(1)  +  x(2) * x(2) + x(3) * x(3))
+        v2 =     v(1) * v(1)  +  v(2) * v(2) +  v(3) * v(3)
+        v1 = sqrt(v2)
+        be = (mcen + m) / r
+        ke = HALF * v2
+!
+        fr = log10 (min(max(r, rcen), rmax) / rcen)
+        temp = ke / be
+        fv = ONE / (ONE + TWO*temp*temp)
+!
+!------------------------------------------------------------------------------
+!
+      end function mco_x2ov
 
 
