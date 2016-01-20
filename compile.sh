@@ -1,8 +1,8 @@
 echo "Compiling mercury6 package"
 
-gfortran element6.for -o element6
-gfortran close6.for -o close6
-gfortran mercury6_2.for -o mercury6
+gfortran -w -o element6 element6.for 
+gfortran -w -o close6 close6.for 
+gfortran -w -o mercury6 mercury6_2.for 
 #gfortran trying_other.for -o tryingother
 #gfortran mercury6_2.noce.for -o mercury6_noce
 

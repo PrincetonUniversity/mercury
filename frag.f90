@@ -808,12 +808,12 @@
 
 !!!!!!!! Added by Joshua Wallace
     interface
-      function mco_x2ov (m,x,v,fr,fv)
+      subroutine mco_x2ov (m,x,v,fr,fv)
       use kinds
       real(R8),  intent(in)::m
       real(R8),  intent(out)::fr,fv
       real(R8),  intent(in)::x(3),v(3)
-      end function mco_x2ov
+      end subroutine mco_x2ov
    end interface
 
     end module interfaces
@@ -2067,12 +2067,12 @@
     implicit none
     real(R8), intent(in)::x(3)
     real(R8), intent(out)::r,theta,phi
-    real(R8)::p
+!    real(R8)::p
 !------------------------------------------------------------------------------
-    p = sqrt(x(1) * x(1)  +  x(2) * x(2))
+!    p = sqrt(x(1) * x(1)  +  x(2) * x(2))
 !
     r     = sqrt(dot_product(x, x))
-    theta = atan (x(3) / p)
+    theta = acos (x(3) / r)
     phi   = modulo (atan2 (x(2), x(1)), TWOPI)
 !
     end subroutine calc_spherical_polars
@@ -4505,6 +4505,9 @@
     integer(I4)::i
     real(R8)::r1,v1,s1,theta,phi,vtheta,vphi,stheta,sphi
     character(85)::header,c
+    real(R8)::fr,fv,rfac
+
+    rfac = log10(rmax/rcen)
 !------------------------------------------------------------------------------
 ! Update list of output codes if necessary
     call output_codes (n,nbig,status,index,name,m)
@@ -4523,17 +4526,18 @@
       call calc_spherical_polars (x(:,i), r1,  theta,  phi)
       call calc_spherical_polars (v(:,i), v1, vtheta, vphi)
       call calc_spherical_polars (s(:,i), s1, stheta, sphi)
+      call mco_x2ov(m,x(:,i),v(:,i),fr,fv)
 !
       c(1:8)   = calc_real_string  (dble(index(i)), ZERO, INDEX_MAX)
 !      c(4:11)  = calc_float_string (m(i))
 !      c(11:18) = calc_float_string (rho(i))
 !
-      c(4:11) = calc_float_string (r1/AU) !AU converts to AU from cm
-      c(11:18) = calc_real_string  (theta,  -PIBY2, PIBY2)
+      c(4:11) = calc_real_string (fr,    ZERO,rfac)!r1/AU) !AU converts to AU from cm
+      c(11:18) = calc_real_string  (theta,  ZERO, PI)
       c(18:25) = calc_real_string  (phi,    ZERO, TWOPI)
 !
-      c(25:32) = calc_float_string (v1/AU*DAY) !AU*DAY converts to AU/day from cm/s
-      c(32:39) = calc_real_string  (vtheta, -PIBY2, PIBY2)
+      c(25:32) = calc_real_string (fv,   ZERO,ONE)!v1/AU*DAY) !AU*DAY converts to AU/day from cm/s
+      c(32:39) = calc_real_string  (vtheta, ZERO, PI)
       c(39:46) = calc_real_string  (vphi,   ZERO, TWOPI)
 !      c(18:25) = calc_float_string (r1)
 !      c(25:32) = calc_real_string  (theta,  -PIBY2, PIBY2)
@@ -6811,8 +6815,8 @@
 ! This allows the proper fr and fv values to be calculated 
 ! which can be read by element6 and produce the correct output.
 
-      function mco_x2ov (m,x,v,fr,fv)
-      use constants use globals; 
+      subroutine mco_x2ov (m,x,v,fr,fv)
+      use constants; use globals 
       implicit none
 ! Input/Output
       real(R8),  intent(in)::m
@@ -6820,14 +6824,13 @@
       real(R8),  intent(in)::x(3),v(3)
 !
 ! Local
-      real(R8) r,v2,v1,be,ke,temp
+      real(R8) r,v2,be,ke,temp
 !
 !------------------------------------------------------------------------------
 !
         r = sqrt(x(1) * x(1)  +  x(2) * x(2) + x(3) * x(3))
         v2 =     v(1) * v(1)  +  v(2) * v(2) +  v(3) * v(3)
-        v1 = sqrt(v2)
-        be = (mcen + m) / r
+        be = G*(mcen + m) / r
         ke = HALF * v2
 !
         fr = log10 (min(max(r, rcen), rmax) / rcen)
@@ -6836,6 +6839,6 @@
 !
 !------------------------------------------------------------------------------
 !
-      end function mco_x2ov
+      end subroutine mco_x2ov
 
 

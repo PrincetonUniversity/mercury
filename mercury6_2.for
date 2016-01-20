@@ -2863,6 +2863,7 @@ c
 c
         fr = log10 (min(max(r, rcen), rmax) / rcen)
         temp = ke / be
+
         fv = 1.d0 / (1.d0 + 2.d0*temp*temp)
 c
         theta  = mod (acos (z / r) + TWOPI, TWOPI)
