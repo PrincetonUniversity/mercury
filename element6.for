@@ -969,7 +969,8 @@ c If the file exists already, give a warning and don't overwrite it
         unitnum = -1
       else
         open (unitnum, file=filename, status='new')
-        write (unitnum, '(/,30x,a8,//,a)') id,header(1:lenhead)
+        write (unitnum, '(a1,12x,a8,/,a1,a)') "#",id,"#",
+     %    header(1:lenhead)
       end if
 c
 c------------------------------------------------------------------------------
