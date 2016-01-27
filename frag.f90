@@ -35,7 +35,7 @@
 !   IXV, JXV = coords and velocities of particles at closest approach
       type::encounter
         integer(I4)::i,j
-        real(R8)::d,t,ix(3),iv(3),jx(3),jv(3)
+        real(R8)::d,t,im,jm,ix(3),iv(3),jx(3),jv(3)
       end type encounter
     end module kinds
 !==============================================================================
@@ -2381,6 +2381,8 @@
             clo(nclo) % j = iproj
             clo(nclo) % t = tmin  +  t
             clo(nclo) % d = sqrt(d2min)
+            clo(nclo) % im= m(i)
+            clo(nclo) % jm= m(j)
 !
 ! Make linear interpolation to estimate coordinates at time of closest approach
             tmp1 = -tmin / dt
@@ -2389,17 +2391,28 @@
             clo(nclo) % iv(:) = tmp0 * v0(:,i)  +  tmp1 * v1(:,i)
             clo(nclo) % jx(:) = tmp0 * x0(:,j)  +  tmp1 * x1(:,j)
             clo(nclo) % jv(:) = tmp0 * v0(:,j)  +  tmp1 * v1(:,j)
+            ! Store details of any collisions
+            if (d2min <= d2hit) then
+               nhit = nhit  +  1
+               hit(nhit) % i = itarg
+               hit(nhit) % j = iproj
+               hit(nhit) % t = tmin  +  t
+               hit(nhit) % d = sqrt(d2min)
+               hit(nhit) % im= m(i)
+               hit(nhit) % jm= m(j)
+               hit(nhit) % ix(:) = tmp0 * x0(:,i)  +  tmp1 * x1(:,i)
+               hit(nhit) % iv(:) = tmp0 * v0(:,i)  +  tmp1 * v1(:,i)
+               hit(nhit) % jx(:) = tmp0 * x0(:,j)  +  tmp1 * x1(:,j)
+               hit(nhit) % jv(:) = tmp0 * v0(:,j)  +  tmp1 * v1(:,j)
+!               write(*,*) hit(nhit) % ix(:)
+!               write(*,*) hit(nhit) % iv(:)
+!               write(*,*) hit(nhit) % jx(:)
+!               write(*,*) hit(nhit) % jv(:)
+            end if
           end if
         end if
 !
-! Store details of any collisions
-        if (d2min <= d2hit) then
-          nhit = nhit  +  1
-          hit(nhit) % i = itarg
-          hit(nhit) % j = iproj
-          hit(nhit) % t = tmin  +  t
-          hit(nhit) % d = sqrt(d2min)
-        end if
+
 !
 ! Move on to the next pair of bodies
       end do
@@ -4737,6 +4750,9 @@
     integer(I4)::i,j,k
     real(R8)::r1,v1,theta,phi,vtheta,vphi
     character(120)::c
+    real(R8)::fr,fv,rfac
+
+    rfac = log10(rmax/rcen)
 !------------------------------------------------------------------------------
 ! Update list of output codes if necessary
     call output_codes (n,nbig,status,index,name,m)
@@ -4746,32 +4762,57 @@
 !
 ! Output details of each close encounter
     do k = 1, nclo
+!       write(*,*) clo(k) % im
+!       write(*,*) clo(k) % jm
+       write(*,*) clo(k) % ix
+!       write(*,*) clo(k) % ix(1)
+!       write(*,*) clo(k) % ix(2)
+       write(*,*) clo(k) % iv
+!       write(*,*) clo(k) % iv(1)
+!       write(*,*) clo(k) % iv(2)
+       write(*,*) clo(k) % jx
+!       write(*,*) clo(k) % jx(1)
+!       write(*,*) clo(k) % jx(2)
+       write(*,*) clo(k) % jv
+!       write(*,*) clo(k) % jv(1)
+!       write(*,*) clo(k) % jv(2)
       i = index(clo(k) % i);      j = index(clo(k) % j)
-      c(1:8)   = calc_float_string(clo(k) % t)
+      c(1:8)   = calc_float_string(clo(k) % t/DAY)
       c(9:16)  = calc_real_string (dble(i), ZERO, INDEX_MAX)
       c(12:19) = calc_real_string (dble(j), ZERO, INDEX_MAX)
-      c(15:22) = calc_float_string(clo(k) % d)
+      c(15:22) = calc_float_string( (clo(k) % d)/AU)
+!      if (k.eq.1) write(*,*) (clo(k) % d)/AU
 !
       call calc_spherical_polars (clo(k) % ix, r1,  theta,  phi)
       call calc_spherical_polars (clo(k) % iv, v1, vtheta, vphi)
-      c(23:30) = calc_float_string (r1)
-      c(31:38) = calc_real_string  (theta,  ZERO, PI)
-      c(38:45) = calc_real_string  (phi,    ZERO, TWOPI)
-      c(45:52) = calc_float_string (v1)
-      c(53:60) = calc_real_string  (vtheta, ZERO, PI)
-      c(60:67) = calc_real_string  (vphi,   ZERO, TWOPI)
+      call mco_x2ov(clo(k) % im,clo(k) % ix(:),clo(k) % iv(:),fr,fv)
+      c(23:30) = calc_real_string (fr,      ZERO, rfac)
+      c(27:34) = calc_real_string  (theta,  ZERO, PI)
+      c(31:38) = calc_real_string  (phi,    ZERO, TWOPI)
+      c(35:42) = calc_real_string (fv,     ZERO,ONE)
+      c(39:46) = calc_real_string  (vtheta, ZERO, PI)
+      c(43:50) = calc_real_string  (vphi,   ZERO, TWOPI)
+!      if (k.eq.1) write(*,*) fr
+!      if (k.eq.1) write(*,*) theta
+!      if (k.eq.1) write(*,*) phi
+!      if (k.eq.1) write(*,*) fv
 !
       call calc_spherical_polars (clo(k) % jx, r1,  theta,  phi)
       call calc_spherical_polars (clo(k) % jv, v1, vtheta, vphi)
-      c(67:74)   = calc_float_string (r1)
-      c(75:82)   = calc_real_string  (theta,  ZERO, PI)
-      c(82:89)   = calc_real_string  (phi,    ZERO, TWOPI)
-      c(89:96)   = calc_float_string (v1)
-      c(97:104)  = calc_real_string  (vtheta, ZERO, PI)
-      c(104:111) = calc_real_string  (vphi,   ZERO, TWOPI)
+      call mco_x2ov(clo(k) % jm,clo(k) % jx(:),clo(k) % jv(:),fr,fv)
+      c(47:54)   = calc_real_string (fr,     ZERO,rfac)
+      c(51:58)   = calc_real_string  (theta,  ZERO, PI)
+      c(55:62)   = calc_real_string  (phi,    ZERO, TWOPI)
+      c(59:66)   = calc_real_string (fv,     ZERO,ONE)
+      c(63:74)  = calc_real_string  (vtheta, ZERO, PI)
+      c(67:78) = calc_real_string  (vphi,   ZERO, TWOPI)
+!      if (k.eq.1) write(*,*) fr
+!      if (k.eq.1) write(*,*) theta
+!      if (k.eq.1) write(*,*) phi
+!      if (k.eq.1) write(*,*) fv
 !
 ! Output the compressed close encounter details
-      write (22,'(a1,a2,a110)') char(12),'7b',c(1:110)
+      write (22,'(a1,a2,a70)') char(12),'7b',c(1:110)
     end do
     close (22)
 !
