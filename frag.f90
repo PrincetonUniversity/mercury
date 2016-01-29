@@ -4481,15 +4481,15 @@
    write (23,*) '  adding: ',name(i),index(i)
           c(1:8)   = calc_real_string (dble(index(i)), ZERO, INDEX_MAX)
           c(4:11)  = name(i)
-          c(12:19) = calc_float_string (m(i)/MSUN) !MSUN converts to solar masses from grams
-          c(20:27) = calc_float_string (0.0_R8) !zeroes because the spins don't matter for me
-          c(28:35) = calc_float_string (0.0_R8)
-          c(36:43) = calc_float_string (0.0_R8)
-          c(44:51) = calc_float_string (0.0_R8)!rho(i)) Already know rho, don't actually need to print
-!          write (21,'(a11)') c(1:11)
-!          write (22,'(a11)') c(1:11)
-          write(21,'(a51)') c(1:51)
-          write(22,'(a51)') c(1:51)
+!          c(12:19) = calc_float_string (m(i)/MSUN) !MSUN converts to solar masses from grams
+!          c(20:27) = calc_float_string (0.0_R8) !zeroes because the spins don't matter for me
+!          c(28:35) = calc_float_string (0.0_R8)
+!          c(36:43) = calc_float_string (0.0_R8)
+!          c(44:51) = calc_float_string (0.0_R8)!rho(i)) Already know rho, don't actually need to print
+          write (21,'(a11)') c(1:11)
+          write (22,'(a11)') c(1:11)
+!          write(21,'(a51)') c(1:51)
+!          write(22,'(a51)') c(1:51)
         end if
       end do
 !
@@ -4552,6 +4552,7 @@
       c(25:32) = calc_real_string (fv,   ZERO,ONE)!v1/AU*DAY) !AU*DAY converts to AU/day from cm/s
       c(32:39) = calc_real_string  (vtheta, ZERO, PI)
       c(39:46) = calc_real_string  (vphi,   ZERO, TWOPI)
+      c(46:53) = calc_float_string (m(i)/MSUN) !MSUN converts to solar masses from gram
 !      c(18:25) = calc_float_string (r1)
 !      c(25:32) = calc_real_string  (theta,  -PIBY2, PIBY2)
 !      c(32:39) = calc_real_string  (phi,    ZERO, TWOPI)
@@ -4563,7 +4564,7 @@
 !      c(64:71) = calc_float_string (s1)
 !      c(72:79) = calc_real_string  (stheta, -PIBY2, PIBY2)
 !      c(79:85) = calc_real_string  (sphi,   ZERO, TWOPI)
-      write (21,'(a46)') c(1:46)
+      write (21,'(a53)') c(1:53)
     end do
 !
     close (21)

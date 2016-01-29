@@ -8,6 +8,7 @@ aaa.for
 *.gnu
 *.mod
 element6
+element7
 mercury6
 mercury7
 close6
@@ -16,3 +17,5 @@ frag_f90
 
 code_pdfs
 *candel*
+
+precision.f90
