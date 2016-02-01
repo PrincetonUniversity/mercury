@@ -295,7 +295,8 @@ c Look for objects for which orbital elements are required
 c
 c Decompress orbital variables for each object
             l = j + 1
-!            m(l) = el(18,code(j)) * K2
+            el(18,code(j)) = mio_c2fl (c(j)(4+6*nchar:1+11+6*nchar) )
+            m(l) = el(18,code(j)) * K2
             fr     = mio_c2re (c(j)(4:11), 0.d0, rfac,  nchar)
             theta  = mio_c2re (c(j)(4+  nchar:11+  nchar), 0.d0, PI,
      %               nchar)
@@ -307,8 +308,6 @@ c Decompress orbital variables for each object
      %               nchar)
             vphi   = mio_c2re (c(j)(4+5*nchar:11+5*nchar), 0.d0, TWOPI,
      %               nchar)
-            m(l)   = mio_c2fl (c(j)(4+6*nchar:1+11+6*nchar) )
-            el(18,code(j)) = m(l)
             call mco_ov2x (rcen,rmax,m(1),m(l),fr,theta,phi,fv,
      %        vtheta,vphi,x(1,l),x(2,l),x(3,l),v(1,l),v(2,l),v(3,l))
             el(16,code(j)) = sqrt(x(1,l)*x(1,l) + x(2,l)*x(2,l)
@@ -338,7 +337,7 @@ c Put Cartesian coordinates into element arrays
             el(15,k) = v(3,l)
 c
 c Convert to Keplerian orbital elements
-            gm = (mcen + m(k)) * K2
+            gm = (mcen + el(18,k)) * K2
             call mco_x2el (gm,el(10,k),el(11,k),el(12,k),el(13,k),
      %        el(14,k),el(15,k),el(8,k),el(2,k),el(3,k),el(7,k),
      %        el(5,k),el(6,k))
