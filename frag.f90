@@ -3018,6 +3018,39 @@
     b = sqrt(h2 / v2imp)
 !
     end subroutine calc_impact_geometry
+
+!==============================================================================
+! Calculates the impact velocity and impact angle of a collision given the
+! relative coordinates and velocities at some time before the collision, 
+! assuming the two particles move solely due to their mutual gravity
+!
+    subroutine calc_impact_geometry (xrel,vrel,msum,rsum,b,v2imp)
+!
+    use constants;    use globals
+    use interfaces, only: cross_product
+    implicit none
+    real(R8), intent(in)::xrel(:),vrel(:),msum,rsum
+    real(R8), intent(out)::b,v2imp
+!
+    real(R8)::v2rel,x2rel,x1rel,h(3),h2
+!------------------------------------------------------------------------------
+! Separation and velocity
+    x2rel = dot_product (xrel, xrel)
+    v2rel = dot_product (vrel, vrel)
+    x1rel = sqrt(x2rel)
+!
+! Angular momentum
+    h = cross_product(xrel, vrel)
+    h2 = dot_product(h, h)
+!
+! Relative velocity at impact
+    v2imp = v2rel  +  TWO * G * msum * (ONE / rsum  -  ONE / x1rel)
+!
+! Impact parameter
+    b = sqrt(h2 / v2imp)
+!
+    end subroutine calc_impact_geometry
+
 !==============================================================================
 ! Calculates the mass of the largest remnant from a collision between a
 ! target of mass MTARG and a projectile of mass MPROJ, given the impact 

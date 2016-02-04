@@ -3009,7 +3009,7 @@
     real(R8)::l,alpha,msum,q,qstar
 !------------------------------------------------------------------------------
 ! Fraction of projectile that intersects the target
-    l = rtarg  +  rproj  -  b
+    l = rtarg  +  rproj  -  b !b is the dimensionful impact parameter, not dimensionless sin(theta)
     l = min(l, TWO * rproj)
     alpha = l * l * (THREE * rproj  -  l) / (FOUR * rproj * rproj * rproj)
     alpha = min(ONE, alpha)
