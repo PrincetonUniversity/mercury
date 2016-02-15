@@ -161,9 +161,10 @@ c Loop over each time slice
 c
 c Check if this is an old style input file
         if (ichar(check).eq.12.and.(style.eq.'0'.or.style.eq.'1'.or.
-     %    style.eq.'2'.or.style.eq.'3'.or.style.eq.'4')) then
+     %    style.eq.'2'.or.style.eq.'3'.or.style.eq.'4'.or.style.eq.'5'.
+     %    or.style.eq.'6')) then
           write (*,'(/,2a)') ' ERROR: This is an old style data file',
-     %      '        Try running m_elem5.for instead.'
+     %      '        Try running another one instead.'
           stop
         end if
         if (ichar(check).ne.12) goto 666
