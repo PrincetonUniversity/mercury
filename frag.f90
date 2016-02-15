@@ -535,12 +535,13 @@
     end interface
 !
     interface
-      subroutine collide_bodies (t,i,j,n,nbig,m,x,v,s,ngf,rho,rce_hill,rad, &
+      subroutine collide_bodies (t,i,j,n,nbig,m,x0,v0,x,v,s,ngf,rho,rce_hill,rad, &
         rcrit,status,index,name)
       use kinds
       integer(I4),  intent(in)::i,j
       real(R8),     intent(in)::t
       integer(I4),  intent(inout)::n,nbig,index(:)
+      real(R8),     intent(in)::x0(:,:),v0(:,:)
       real(R8),     intent(inout)::m(:),x(:,:),v(:,:),s(:,:),ngf(:,:),rho(:)
       real(R8),     intent(inout)::rce_hill(:),rad(:),rcrit(:)
       character(8), intent(inout)::name(:)
@@ -829,7 +830,11 @@
     real(R8)::m(NMAX),x(3,NMAX),v(3,NMAX),s(3,NMAX),ngf(3,NMAX),rho(NMAX),rce_hill(NMAX)
     character(8)::name(NMAX)
     character(5)::status(NMAX)
+    real(R8)::time_start, time_end
+    integer(I4)::days, hours, minutes, seconds
 !------------------------------------------------------------------------------
+! Start timing
+    call cpu_time(time_start)
 ! Set up the initial conditions
     call setup (n,nbig,m,x,v,s,ngf,rho,rce_hill,status,index,name)
 !
@@ -846,6 +851,15 @@
 ! Finish
     call finish (n,nbig,m,x,v,s,ngf,rho,rce_hill,status,index,name)
 !
+! End timing
+    call cpu_time(time_end)
+    write(*,*) "CPU time: ", time_end-time_start, " seconds"
+    days = int( (time_end-time_start)/86400.0_R8) 
+    hours = int( mod((time_end-time_start)/3600.0_R8, 24.0_R8) )
+    minutes = int( mod((time_end-time_start)/60.0_R8, 60.0_R8) )
+    seconds = int( mod((time_end-time_start), 60.0_R8) )
+    write(*,*) "CPU time, (D,H,M,S): ",days, hours, minutes, seconds
+
     end program mercury7_0
 !==============================================================================
 ! Calculates the accelerations on all particles using a variable timestep
@@ -2592,7 +2606,7 @@
 ! Resolves a collision between particles I and J. Also writes a message
 ! to the information file.
 !
-    subroutine collide_bodies (t,i,j,n,nbig,m,x,v,s,ngf,rho,rce_hill,rad, &
+    subroutine collide_bodies (t,i,j,n,nbig,m,x0,v0,x,v,s,ngf,rho,rce_hill,rad, &
       rcrit,status,index,name)
 !
     use constants;    use globals
@@ -2605,6 +2619,7 @@
     integer(I4),  intent(in)::i,j
     real(R8),     intent(in)::t
     integer(I4),  intent(inout)::n,nbig,index(:)
+    real(R8),     intent(in)::x0(:,:),v0(:,:) !These are for the impact geometry calculation
     real(R8),     intent(inout)::m(:),x(:,:),v(:,:),s(:,:),ngf(:,:),rho(:)
     real(R8),     intent(inout)::rce_hill(:),rad(:),rcrit(:)
     character(8), intent(inout)::name(:)
@@ -2646,7 +2661,7 @@
       v2esc = TWO * G * msum / rsum
 !
 !..impact parameter, impact velocity and mass of largest remnant
-      call calc_relative_coords (m,x,v,itarg,iproj,xrel,vrel,xcom,vcom)
+      call calc_relative_coords (m,x0,v0,itarg,iproj,xrel,vrel,xcom,vcom)
       call calc_impact_geometry (xrel,vrel,msum,rsum,b,v2imp)
       m1 = calc_largest_remnant (m(itarg),m(iproj),rad(itarg),rad(iproj),b,v2imp)
 !
@@ -3018,39 +3033,6 @@
     b = sqrt(h2 / v2imp)
 !
     end subroutine calc_impact_geometry
-
-!==============================================================================
-! Calculates the impact velocity and impact angle of a collision given the
-! relative coordinates and velocities at some time before the collision, 
-! assuming the two particles move solely due to their mutual gravity
-!
-    subroutine calc_impact_geometry (xrel,vrel,msum,rsum,b,v2imp)
-!
-    use constants;    use globals
-    use interfaces, only: cross_product
-    implicit none
-    real(R8), intent(in)::xrel(:),vrel(:),msum,rsum
-    real(R8), intent(out)::b,v2imp
-!
-    real(R8)::v2rel,x2rel,x1rel,h(3),h2
-!------------------------------------------------------------------------------
-! Separation and velocity
-    x2rel = dot_product (xrel, xrel)
-    v2rel = dot_product (vrel, vrel)
-    x1rel = sqrt(x2rel)
-!
-! Angular momentum
-    h = cross_product(xrel, vrel)
-    h2 = dot_product(h, h)
-!
-! Relative velocity at impact
-    v2imp = v2rel  +  TWO * G * msum * (ONE / rsum  -  ONE / x1rel)
-!
-! Impact parameter
-    b = sqrt(h2 / v2imp)
-!
-    end subroutine calc_impact_geometry
-
 !==============================================================================
 ! Calculates the mass of the largest remnant from a collision between a
 ! target of mass MTARG and a projectile of mass MPROJ, given the impact 
@@ -3873,9 +3855,10 @@
           if (nhit > 0.and.opt_collisions) then
             do k = 1, nhit
               i = hit(k) % i;      j = hit(k) % j;      t = hit(k) % t
-              call collide_bodies (t,i,j,ncrit,ncrit_big,mbs,xbs,vbs,sbs,ngfbs, &
+              call collide_bodies (t,i,j,ncrit,ncrit_big,mbs,x0,v0,xbs,vbs,sbs,ngfbs, &
                 rhobs,rcebs,radbs,rcritbs,statusbs,indexbs,namebs)
               flag_collision = .true.
+              write(*,*) "Number of big bodies at time", t/YEAR," years is: ", nbig
             end do
           end if
 !
@@ -4187,7 +4170,7 @@
       if (nhit > 0.and.opt_collisions) then
         do k = 1, nhit
           i = hit(k) % i;      j = hit(k) % j;      t = hit(k) % t
-          call collide_bodies (t,i,j,n,nbig,m,x,v,s,ngf,rho,rce_hill,rad, &
+          call collide_bodies (t,i,j,n,nbig,m,x0,v0,x,v,s,ngf,rho,rce_hill,rad, &
             rcrit,status,index,name)
         end do
         call remove_dead_bodies (n,nbig,m,x,v,s,ngf,rho,rce_hill,rad,status,index,name)
@@ -4798,16 +4781,16 @@
     do k = 1, nclo
 !       write(*,*) clo(k) % im
 !       write(*,*) clo(k) % jm
-       write(*,*) clo(k) % ix
+!       write(*,*) clo(k) % ix
 !       write(*,*) clo(k) % ix(1)
 !       write(*,*) clo(k) % ix(2)
-       write(*,*) clo(k) % iv
+!       write(*,*) clo(k) % iv
 !       write(*,*) clo(k) % iv(1)
 !       write(*,*) clo(k) % iv(2)
-       write(*,*) clo(k) % jx
+!       write(*,*) clo(k) % jx
 !       write(*,*) clo(k) % jx(1)
 !       write(*,*) clo(k) % jx(2)
-       write(*,*) clo(k) % jv
+!       write(*,*) clo(k) % jv
 !       write(*,*) clo(k) % jv(1)
 !       write(*,*) clo(k) % jv(2)
       i = index(clo(k) % i);      j = index(clo(k) % j)
