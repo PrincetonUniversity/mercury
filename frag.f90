@@ -3026,11 +3026,11 @@
     h = cross_product(xrel, vrel)
     h2 = dot_product(h, h)
 !
-! Relative velocity at impact
+! Relative velocity at impact, using vis-viva equation
     v2imp = v2rel  +  TWO * G * msum * (ONE / rsum  -  ONE / x1rel)
 !
 ! Impact parameter
-    b = sqrt(h2 / v2imp)
+    b = sqrt(h2 / v2imp) !This is really B = b*R
 !
     end subroutine calc_impact_geometry
 !==============================================================================

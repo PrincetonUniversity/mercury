@@ -6,6 +6,8 @@
 
 import numpy as np
 
+long_string_of_dashes = "---------------------------------------------------------------------"
+
 class aei_info:
     def __init__(self,time_,a_,e_,i_,mass_):
         self.time = time_
@@ -13,6 +15,16 @@ class aei_info:
         self.e    = e_
         self.i    = i_
         self.mass = mass_
+
+
+class collision_type:
+    SIMPLE_MERGER = 1 #impact velocity less than mutual escape velocity
+    EFFECTIVE_MERGER = 2 #if non-grazing regime and fragment mass less than minimum
+    NONGRAZING_FRAG = 3   #if non-grazing and fragments
+    GRAZE_MERGER = 4  #if grazing regime and impact velocity less than v2gm
+    HIT_AND_RUN = 5   #if grazing regime and largest fragment larger than target mass
+    GRAZING_FRAG = 6  #if grazing regime and fragments
+
 
 #class clo_info:
 #    def __init__(self,time_,a_,e_,i_,mass_):
@@ -69,14 +81,73 @@ def collision_info_extractor(filename):
     toreturn = []
     f = open(filename, 'r')
 
+    info_found = False
+    
+
     while True:
+        M2_info = False
         try:
             line = f.next()
-            if line[0] != '-------------------------------------------------------------------':
-                continue
-            else:
+            if line[0:66] == long_string_of_dashes[0:66]:
+                info_found = True
                 #Pull out the necessary information
+                info = f.next().split()
+                mass_ratio = float(info[-1])
+                info = f.next().split()
+                b_Rtarg_ratio = float(info[-1])
+                info = f.next().split()
+                vimpact_vescape_ratio = float(info[-1])
+                info = f.next().split()
+                vgrazemerge_vescape_ratio = float(info[-1])
+                f.next()
+                info = f.next().split()
+                masslargestremnant_msum_ratio = float(info[-1])
+                info = f.next().split()
+                masslargestremnant_mtarget_ratio = float(info[-1])
+                info = f.next().split()
+                mfrag_mfragmin_ratio = float(info[-1])
+
+                #Some will have this next line, others will not
+                info = f.next().split()
+                try:
+                    if info[0] == "M2":
+                        M2_info = True
+                        M2_mproj_ratio = float(info[-1])
+                        f.next()
+                except IndexError:
+                    pass
+                info = f.next().split()
+                projectile_name = info[0]
+                target_name = info[-4]
+                time = float(info[-2])
+                classification = -1
+                #Now to classify the collision
+                if info[1] == "simply" and info[2] == "merged":
+                    classification = collision_type.SIMPLE_MERGER
+                elif info[1] == 'effectively' and info[2] == 'merged':
+                    classification = collision_type.EFFECTIVE_MERGER
+                elif info[1] == 'head-on' and info[2] == 'smashed':
+                    classification = collision_type.NONGRAZING_FRAG
+                elif info[1] == "grazed" and info[3] == "merged":
+                    classification = collision_type.GRAZE_MERGER
+                elif info[1] == 
+
+
+   SIMPLE_MERGER = 1 #impact velocity less than mutual escape velocity
+    EFFECTIVE_MERGER = 2 #if non-grazing regime and fragment mass less than minimum
+    NONGRAZING_FRAG = 3   #if non-grazing and fragments
+    GRAZE_MERGER = 4  #if grazing regime and impact velocity less than v2gm
+    HIT_AND_RUN = 5   #if grazing regime and largest fragment larger than target mass
+    GRAZING_FRAG = 6  #if grazing regime and fragments
         except StopIteration:
             break
 
+    if info_found == True:
+        return toreturn
+    else:
+        raise TypeError("Did not find any information in file " + filename)
 
+
+if __name__ == '__main__':
+    temp = collision_info_extractor("info.out")
+    print temp
