@@ -23,8 +23,20 @@ class collision_type:
     NONGRAZING_FRAG = 3   #if non-grazing and fragments
     GRAZE_MERGER = 4  #if grazing regime and impact velocity less than v2gm
     HIT_AND_RUN = 5   #if grazing regime and largest fragment larger than target mass
-    GRAZING_FRAG = 6  #if grazing regime and fragments
+    GRAZING_FRAG = 6  #if grazing regime and fragmentstime
 
+class collision_object:
+    def __init__(self,target_name_,projectile_name_,time_,classification_,vimpact_vescape_ratio_,vgrazemerge_vescape_ratio_,B_Rtarg_ratio_,masslargestremnant_msum_ratio_,masslargestremnant_mtarget_ratio_,mfrag_mfragmin_ratio_):
+        self.target_name = target_name_
+        self.projectile_name = projectile_name_
+        self.time ＝ time_
+        self.classification = classification_
+        self.vimpact_vescape_ratio = vimpact_vescape_ratio_
+        self.vgrazemerge_vescape_ratio = vgrazemerge_vescape_ratio_
+        self.B_Rtarg_ratio = B_Rtarg_ratio_
+        self.masslargestremnant_msum_ratio = masslargestremnant_msum_ratio_
+        self.masslargestremnant_mtarget_ratio = masslargestremnant_mtarget_ratio_
+        self.mfrag_mfragmin_ratio = mfrag_mfragmin_ratio_
 
 #class clo_info:
 #    def __init__(self,time_,a_,e_,i_,mass_):
@@ -94,7 +106,7 @@ def collision_info_extractor(filename):
                 info = f.next().split()
                 mass_ratio = float(info[-1])
                 info = f.next().split()
-                b_Rtarg_ratio = float(info[-1])
+                B_Rtarg_ratio = float(info[-1])
                 info = f.next().split()
                 vimpact_vescape_ratio = float(info[-1])
                 info = f.next().split()
@@ -130,15 +142,14 @@ def collision_info_extractor(filename):
                     classification = collision_type.NONGRAZING_FRAG
                 elif info[1] == "grazed" and info[3] == "merged":
                     classification = collision_type.GRAZE_MERGER
-                elif info[1] == 
+                elif info[1] == "hit" and info[3] == "run":
+                    classification = collision_type.HIT_AND_RUN
+                elif info[1] == 'grazing' and info[2] == 'smashed':
+                    classification = collision_type.GRAZING_FRAG
+                else:
+                    raise TypeError("Don't recognize collision type" + info[1] + " " + info[2] + " " + info[3])
+                toreturn.append( collision_object(target_name,projectile_name,time,classification,vimpact_vescape_ratio,vgrazemerge_vescape_ratio,B_Rtarg_ratio,masslargestremnant_msum_ratio,masslargestremnant_mtarget_ratio,mfrag_mfragmin_ratio) )
 
-
-   SIMPLE_MERGER = 1 #impact velocity less than mutual escape velocity
-    EFFECTIVE_MERGER = 2 #if non-grazing regime and fragment mass less than minimum
-    NONGRAZING_FRAG = 3   #if non-grazing and fragments
-    GRAZE_MERGER = 4  #if grazing regime and impact velocity less than v2gm
-    HIT_AND_RUN = 5   #if grazing regime and largest fragment larger than target mass
-    GRAZING_FRAG = 6  #if grazing regime and fragments
         except StopIteration:
             break
 
