@@ -29,7 +29,7 @@ class collision_object:
     def __init__(self,target_name_,projectile_name_,time_,classification_,vimpact_vescape_ratio_,vgrazemerge_vescape_ratio_,B_Rtarg_ratio_,masslargestremnant_msum_ratio_,masslargestremnant_mtarget_ratio_,mfrag_mfragmin_ratio_):
         self.target_name = target_name_
         self.projectile_name = projectile_name_
-        self.time ＝ time_
+        self.time = time_
         self.classification = classification_
         self.vimpact_vescape_ratio = vimpact_vescape_ratio_
         self.vgrazemerge_vescape_ratio = vgrazemerge_vescape_ratio_
