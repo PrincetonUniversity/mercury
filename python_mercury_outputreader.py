@@ -4,7 +4,10 @@
 #
 #AGBTG
 
+import glob
 import numpy as np
+import os
+
 
 long_string_of_dashes = "---------------------------------------------------------------------"
 
@@ -25,7 +28,7 @@ class collision_type:
     HIT_AND_RUN = 5   #if grazing regime and largest fragment larger than target mass
     GRAZING_FRAG = 6  #if grazing regime and fragmentstime
 
-class collision_object:
+class collision_information:
     def __init__(self,target_name_,projectile_name_,time_,classification_,vimpact_vescape_ratio_,vgrazemerge_vescape_ratio_,B_Rtarg_ratio_,masslargestremnant_msum_ratio_,masslargestremnant_mtarget_ratio_,mfrag_mfragmin_ratio_):
         self.target_name = target_name_
         self.projectile_name = projectile_name_
@@ -37,6 +40,17 @@ class collision_object:
         self.masslargestremnant_msum_ratio = masslargestremnant_msum_ratio_
         self.masslargestremnant_mtarget_ratio = masslargestremnant_mtarget_ratio_
         self.mfrag_mfragmin_ratio = mfrag_mfragmin_ratio_
+
+
+class central_collision_information:
+    def __init__(self,name_,time_):
+        self.name = name_
+        self.time = time_
+
+class ejection_information:
+    def __init__(self,name_,time_):
+        self.name = name_
+        self.time = time_
 
 #class clo_info:
 #    def __init__(self,time_,a_,e_,i_,mass_):
@@ -70,6 +84,23 @@ def aei_file_reader(filename):
 #Problem I see: Object column won't be a number in general, need to save as string
 
 
+def get_files(extension):
+    """This returns a tuple, the first element of which is a 
+    list of all the files in the current directory
+    that end with the given string 'extension'.  No need to include wildcard
+    or period. It also returns, as the second element of the tuple,
+    the names of all the bodies (basically, the part of the filename
+    that precedes the extension."""
+    temp = glob.glob("*." + extension)
+    if len(temp) == 0:
+        raise TypeError("Found no files with extension " + extension)
+    body_names = []
+    for item in temp:
+        body_names.append(os.path.splitext(item)[0])
+    return(temp,body_names)
+    
+
+
 def numberofbodies_functime_reader(filename):
     """This reads in a specified *.stdout file and returns a list of
     instances of the numberofbodies_functime class"""
@@ -88,9 +119,14 @@ def numberofbodies_functime_reader(filename):
 
 
 def collision_info_extractor(filename):
-    """This reads in a specified *.info file and returns a list of
-    collision_information instances"""
-    toreturn = []
+    """This reads in a specified *.info file and returns a tuple, 
+    the first element of which is a list of collision_information instances,
+    the second element of which is a list of central_collision_information 
+    instances, and the third of which is a list of ejection_information 
+    instances"""
+    collision_info = []
+    central_collision_info = []
+    ejection_info = []
     f = open(filename, 'r')
 
     info_found = False
@@ -148,17 +184,35 @@ def collision_info_extractor(filename):
                     classification = collision_type.GRAZING_FRAG
                 else:
                     raise TypeError("Don't recognize collision type" + info[1] + " " + info[2] + " " + info[3])
-                toreturn.append( collision_object(target_name,projectile_name,time,classification,vimpact_vescape_ratio,vgrazemerge_vescape_ratio,B_Rtarg_ratio,masslargestremnant_msum_ratio,masslargestremnant_mtarget_ratio,mfrag_mfragmin_ratio) )
-
+                collision_info.append( collision_information(target_name,projectile_name,time,classification,vimpact_vescape_ratio,vgrazemerge_vescape_ratio,B_Rtarg_ratio,masslargestremnant_msum_ratio,masslargestremnant_mtarget_ratio,mfrag_mfragmin_ratio) )
+            elif "collided with the central body" in line:
+                info_found = True
+                temp = line.split()
+                central_collision_info.append( central_collision_information(temp[0],float(temp[-2]) ) )
+            elif "ejected at" in line:
+                info_found = True
+                temp = line.split()
+                ejection_info.append( ejection_information(temp[0],float(temp[-2]) ) )
         except StopIteration:
             break
 
     if info_found == True:
-        return toreturn
+        return (collision_info, central_collision_info, ejection_info)
     else:
         raise TypeError("Did not find any information in file " + filename)
 
 
 if __name__ == '__main__':
-    temp = collision_info_extractor("info.out")
+    temp, tempcentral, tempejection = collision_info_extractor("info.out")
     print temp
+
+    temp, tempcentral, tempejection = collision_info_extractor("info.2.out")
+    print len(tempcentral)
+    print len(tempejection)
+
+    print "     "
+    print "     "
+    listoffiles = get_files("for")
+    print listoffiles[0]
+    print listoffiles[1]
+
