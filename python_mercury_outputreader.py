@@ -13,10 +13,26 @@ long_string_of_dashes = "-------------------------------------------------------
 
 class aei_info:
     def __init__(self,time_,a_,e_,i_,mass_):
+        assert( len(time_) == len(a_))
+        assert( len(time_) == len(e_))
+        assert( len(time_) == len(i_))
+        assert( len(time_) == len(mass_))
         self.time = time_
         self.a    = a_
         self.e    = e_
         self.i    = i_
+        self.mass = mass_
+
+
+class aei_singletime:
+    def __init__(self,a_,e_,i_,mass_):
+        assert( not isinstance(a_,list))
+        assert( not isinstance(e_,list))
+        assert( not isinstance(i_,list))
+        assert( not isinstance(mass_,list))
+        self.a     = a_
+        self.e     = e_
+        self.i     = i_
         self.mass = mass_
 
 
@@ -66,13 +82,79 @@ class numberofbodies_functime:
         self.numberbodies = number_
 
 
+def aei_aggregator(path_="./"):
+    """This reads in all the *.aei files in the given path
+    and returns a tuple, the first element of which is the names of all the bodies
+    and the second element of which is a list of aei_info instances"""
+    if not isinstance(path_, str):
+        raise TypeError("The given path is not a string!")
+    filelist, body_names = get_files("aei",path=path_)
+
+    aei_list = []
+    for filename in filelist:
+        aei_list.append(aei_file_reader(filename))
+
+    if len(filelist) != len(aei_list):
+        raise TypeError("Lengths are not the same between the two things to return! Why?")
+
+    return (body_names,aei_list)
+
 
 def aei_file_reader(filename):
     """This reads in a specified *.aei file and returns an
     instance of the aei_info class, corresponding to the object"""
     temp = np.loadtxt(filename,unpack=True)
-    toreturn = aei_info(temp[0],temp[1],temp[2],temp[3],temp[4])
+    toreturn = aei_info(temp[0].tolist(),temp[1].tolist(),temp[2].tolist(),temp[3].tolist(),temp[4].tolist())
     return toreturn
+
+
+def aei_func_time(aei_info_list):
+    """This function takes a list of aei_info objects and returns,
+    as a function of time, the aei's of all objects at the corresponding time.
+    Returnts a tuple: list of time, list of aei_info objects, and list of number of objects"""
+    if not isinstance(aei_info_list,list):
+        raise TypeError("Umm, this isn't even a list.  I don't know what to do with this")
+    if not isinstance(aei_info_list[0],aei_info):
+        raise TypeError("This list doesn't contain aei_info instances, at least not the first element")
+
+    i_with_maxlength = None
+    maxlength = 0
+    for i in range(len(aei_info_list)):
+        temp = len(aei_info_list[i].time)
+        if temp > maxlength:
+            i_with_maxlength = i
+            maxlength = temp
+
+    print "Index of body with max length: " + str(i_with_maxlength)
+            
+    number_of_bodies_withmaxlength = 0
+    for i in range(len(aei_info_list)):
+        if len(aei_info_list[i].time) == maxlength:
+             number_of_bodies_withmaxlength += 1
+             if not np.array_equal(aei_info_list[i].time , aei_info_list[i_with_maxlength].time):
+                 raise TypeError("There are two same-lengthed time arrays with differing values")
+
+    print "Number of bodies with same time array as max length: " + str(number_of_bodies_withmaxlength)
+
+    time_list = aei_info_list[i_with_maxlength].time
+    aei_list_full = []
+
+    for i in range(len(time_list)):
+        time_lookingat = time_list[i]
+        aei_list_just_thistime = []
+        for j in range(len(aei_info_list)):
+            try:
+                indextouse = aei_info_list[j].time.index(time_lookingat)
+                aei_list_just_thistime.append(aei_singletime(aei_info_list[j].a[indextouse], aei_info_list[j].e[indextouse], aei_info_list[j].i[indextouse], aei_info_list[j].mass[indextouse]) )
+            except ValueError:
+                continue
+
+        aei_list_full.append(aei_list_just_thistime)
+
+    number_of_objects = [ len(aei_list_full[k]) for k in range(len(aei_list_full)) ]
+
+    return (time_list,aei_list_full,number_of_objects)
+        
 
 #def clo_file_reader(filename):
 #    """This reads in a specified *.aei file and returns an
@@ -84,19 +166,21 @@ def aei_file_reader(filename):
 #Problem I see: Object column won't be a number in general, need to save as string
 
 
-def get_files(extension):
+def get_files(extension,path="./"):
     """This returns a tuple, the first element of which is a 
     list of all the files in the current directory
     that end with the given string 'extension'.  No need to include wildcard
     or period. It also returns, as the second element of the tuple,
     the names of all the bodies (basically, the part of the filename
     that precedes the extension."""
-    temp = glob.glob("*." + extension)
+    if not isinstance(path, str):
+        raise TypeError("The given path is not a string!")
+    temp = glob.glob(path + "*." + extension)
     if len(temp) == 0:
-        raise TypeError("Found no files with extension " + extension)
+        raise TypeError("Found no files with path " + path + " and extension ." + extension)
     body_names = []
     for item in temp:
-        body_names.append(os.path.splitext(item)[0])
+        body_names.append(os.path.splitext(os.path.split(item)[-1])[0])
     return(temp,body_names)
     
 
@@ -216,3 +300,14 @@ if __name__ == '__main__':
     print listoffiles[0]
     print listoffiles[1]
 
+
+    #################
+
+    temp = get_files("aei")
+    print temp
+
+    names, aei_functime = aei_aggregator()
+    
+    times, aeis, numbers = aei_func_time(aei_functime)
+
+    #print numbers

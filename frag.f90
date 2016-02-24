@@ -3858,7 +3858,7 @@
               call collide_bodies (t,i,j,ncrit,ncrit_big,mbs,x0,v0,xbs,vbs,sbs,ngfbs, &
                 rhobs,rcebs,radbs,rcritbs,statusbs,indexbs,namebs)
               flag_collision = .true.
-              write(*,*) "Number of big bodies at time", t/YEAR," years is: ", nbig
+              write(*,*) "Number of big bodies at time ", t/YEAR, " years is: ", nbig
             end do
           end if
 !
