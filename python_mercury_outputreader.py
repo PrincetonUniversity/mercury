@@ -6,6 +6,7 @@
 
 import glob
 import numpy as np
+import matplotlib.pyplot as pp
 import os
 
 
@@ -26,14 +27,14 @@ class aei_info:
 
 class aei_singletime:
     def __init__(self,a_,e_,i_,mass_):
-        assert( not isinstance(a_,list))
-        assert( not isinstance(e_,list))
-        assert( not isinstance(i_,list))
-        assert( not isinstance(mass_,list))
+        #assert( not isinstance(a_,list))
+        #assert( not isinstance(e_,list))
+        #assert( not isinstance(i_,list))
+        #assert( not isinstance(mass_,list))
         self.a     = a_
         self.e     = e_
         self.i     = i_
-        self.mass = mass_
+        self.mass  = mass_
 
 
 class collision_type:
@@ -141,17 +142,23 @@ def aei_func_time(aei_info_list):
 
     for i in range(len(time_list)):
         time_lookingat = time_list[i]
-        aei_list_just_thistime = []
+        a_just_thistime = []
+        e_just_thistime = []
+        i_just_thistime = []
+        mass_just_thistime = []
         for j in range(len(aei_info_list)):
             try:
                 indextouse = aei_info_list[j].time.index(time_lookingat)
-                aei_list_just_thistime.append(aei_singletime(aei_info_list[j].a[indextouse], aei_info_list[j].e[indextouse], aei_info_list[j].i[indextouse], aei_info_list[j].mass[indextouse]) )
+                a_just_thistime.append(aei_info_list[j].a[indextouse])
+                e_just_thistime.append(aei_info_list[j].e[indextouse])
+                i_just_thistime.append(aei_info_list[j].i[indextouse])
+                mass_just_thistime.append(aei_info_list[j].mass[indextouse]) 
             except ValueError:
                 continue
 
-        aei_list_full.append(aei_list_just_thistime)
+        aei_list_full.append(aei_singletime(a_just_thistime, e_just_thistime, i_just_thistime, mass_just_thistime) )
 
-    number_of_objects = [ len(aei_list_full[k]) for k in range(len(aei_list_full)) ]
+    number_of_objects = [ len(aei_list_full[k].a) for k in range(len(aei_list_full)) ]
 
     return (time_list,aei_list_full,number_of_objects)
         
@@ -286,8 +293,95 @@ def collision_info_extractor(filename):
         raise TypeError("Did not find any information in file " + filename)
 
 
+###Plotting functions
+
+def mass_to_pointsize_converter(mass,scale=20):
+    """Calculates a rough radius from the mass
+    and scales it according to a given parameter, for the size of 
+    circle to be plotted.  Default scale radius is sqrt(20) for an earth mass"""
+
+    two_thirds = 2./3.
+    temp = np.multiply(scale, np.power(np.multiply(mass,333000.),two_thirds)) #Numerical factor in parentheses converts to earth mass from solar
+    #The above takes the given scale and then multiplies it by the radius (mass to the one-third power) squared (which gives the two-thirds power)
+    return temp
+
+
+def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parameter_2,round_time=False,number_of_digits_to_round_to=10):
+    """This will plot a bunch of aei info similar to what John Chambers
+    does.  time_values_to_use shows the time values that you want to plot
+    at (the closest ones will be chosen)
+    time_list is a list of the times outputted from aei_func_time,
+    aeis_list is a list of the aei info outputted from aei_func_time,
+    parameter_1 is the vertical axis parameter, parameter_2 is the 
+    horizontal axis parameter, round_time asks whether you want to round
+    the time values, and number_of_digits_to_round_to is the number 
+    of digits to round to.
+    """
+
+    param_name_dict = {'e':"Eccentricity", 'a':"Semi-Major Axis", 'i':"Inclination", 'm':"Mass"}
+    param_unit_dict = {'e':"", 'a':" (AU)", 'i':" (degrees)", 'mass':" (Mass Units)"}
+
+    if not ( (parameter_1 in param_name_dict) and (parameter_2 in param_name_dict) ):
+        raise TypeError("I can't recognize at least one of the two parameters given to me, " + parameter_1 + "  " + parameter_2)
+
+    if len(time_values_to_use) > 6:
+        raise TypeError("I can't plot more than six times at a time!")
+
+    figuresizex = 8.0
+    figuresizey = 8.0
+    lowerx = .082
+    lowery = .093
+    upperx = .97
+    uppery = .97
+    xwidth = (upperx-lowerx)/2.
+    ywidth = (uppery-lowery)/3.
+
+    fig = pp.figure(figsize=(figuresizex,figuresizey))
+    if len(time_values_to_use) >= 5:
+        ax1 = fig.add_axes([lowerx,lowery+2*ywidth,xwidth,ywidth])
+        ax2 = fig.add_axes([lowerx+xwidth,lowery+2*ywidth,xwidth,ywidth])
+        ax3 = fig.add_axes([lowerx,lowery+ywidth,xwidth,ywidth])
+        ax4 = fig.add_axes([lowerx+xwidth,lowery+ywidth,xwidth,ywidth])
+        ax5 = fig.add_axes([lowerx,lowery,xwidth,ywidth])
+        ax6 = fig.add_axes([lowerx+xwidth,lowery,xwidth,ywidth])
+        axlist = [ax1,ax2,ax3,ax4,ax5,ax6]
+        for ax in (ax1,ax3,ax5):
+            ax.set_ylabel(param_name_dict[parameter_1] + param_unit_dict[parameter_1],size=16)
+        for ax in (ax5,ax6):
+            ax.set_xlabel(param_name_dict[parameter_2] + param_unit_dict[parameter_2],size=16)
+    else:
+        ax1 = fig.add_axes([lowerx,lowery+ywidth,xwidth,ywidth])
+        ax2 = fig.add_axes([lowerx+xwidth,lowery+ywidth,xwidth,ywidth])
+        ax3 = fig.add_axes([lowerx,lowery,xwidth,ywidth])
+        ax4 = fig.add_axes([lowerx+xwidth,lowery,xwidth,ywidth])
+        axlist = [ax1,ax2,ax3,ax4]
+        for ax in (ax1,ax3):
+            ax.set_ylabel(param_name_dict[parameter_1] + param_unit_dict[parameter_1],size=16)
+        for ax in (ax3,ax4):
+            ax.set_xlabel(param_name_dict[parameter_2] + param_unit_dict[parameter_2],size=16)
+
+
+    for i in range(len(time_values_to_use)):
+        argument = min(range(len(times_list)), key=lambda j: abs(times_list[j]-time_values_to_use[i]))
+        print "Argument associated with time " + str(time_values_to_use[i]) + " is " + str(argument)
+        print "    Time is " + str(times_list[argument]) + "  instead of " + str(time_values_to_use[i])
+        if time_values_to_use[i] > times_list[-1] and (time_values_to_use[i] - times_list[-1]) > 1.01*(times_list[-1] - times_list[-2]): #If the wanted time exceeds the greatest time available by an amount greater than time printout step size
+            raise TypeError("The desired time is greater than the times that data are available for")
+
+        if 'mass' not in (parameter_1,parameter_2): #If mass is not one of the axes
+            point_sizes = mass_to_pointsize_converter(aeis_list[argument].mass)
+            axlist[i].scatter( getattr(aeis_list[argument],parameter_2), getattr(aeis_list[argument],parameter_1), s=point_sizes,facecolors='none')
+        else:
+            axlist[i].scatter( getattr(aeis_list[argument],parameter_2), getattr(aeis_list[argument],parameter_1))
+
+
+    return fig
+
+
+
+
 if __name__ == '__main__':
-    temp, tempcentral, tempejection = collision_info_extractor("info.out")
+    """temp, tempcentral, tempejection = collision_info_extractor("info.out")
     print temp
 
     temp, tempcentral, tempejection = collision_info_extractor("info.2.out")
@@ -304,10 +398,16 @@ if __name__ == '__main__':
     #################
 
     temp = get_files("aei")
-    print temp
+    print temp"""
 
     names, aei_functime = aei_aggregator()
     
     times, aeis, numbers = aei_func_time(aei_functime)
 
     #print numbers
+
+    print "     "
+    print "     "
+
+    fig = plot_aei_multiple((0.,3e6,10e6,30e6,60e6,299e6),times,aeis,'e','a')
+    fig.savefig("tempfig.pdf")
