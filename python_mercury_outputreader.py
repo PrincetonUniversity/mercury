@@ -8,6 +8,7 @@ import glob
 import numpy as np
 import matplotlib.pyplot as pp
 import os
+from matplotlib.ticker import MaxNLocator
 
 
 long_string_of_dashes = "---------------------------------------------------------------------"
@@ -295,7 +296,7 @@ def collision_info_extractor(filename):
 
 ###Plotting functions
 
-def mass_to_pointsize_converter(mass,scale=20):
+def mass_to_pointsize_converter(mass,scale=100):
     """Calculates a rough radius from the mass
     and scales it according to a given parameter, for the size of 
     circle to be plotted.  Default scale radius is sqrt(20) for an earth mass"""
@@ -306,7 +307,7 @@ def mass_to_pointsize_converter(mass,scale=20):
     return temp
 
 
-def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parameter_2,round_time=False,number_of_digits_to_round_to=10):
+def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parameter_2,round_time=False,number_of_digits_to_round_to=10,ylimits=None,xlimits=None):
     """This will plot a bunch of aei info similar to what John Chambers
     does.  time_values_to_use shows the time values that you want to plot
     at (the closest ones will be chosen)
@@ -320,6 +321,7 @@ def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parame
 
     param_name_dict = {'e':"Eccentricity", 'a':"Semi-Major Axis", 'i':"Inclination", 'm':"Mass"}
     param_unit_dict = {'e':"", 'a':" (AU)", 'i':" (degrees)", 'mass':" (Mass Units)"}
+    param_limit_dict ={'e':(0,1),'a':(.2,2.6),'i':(0,90),'mass':(0,1e-4)}
 
     if not ( (parameter_1 in param_name_dict) and (parameter_2 in param_name_dict) ):
         raise TypeError("I can't recognize at least one of the two parameters given to me, " + parameter_1 + "  " + parameter_2)
@@ -347,8 +349,12 @@ def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parame
         axlist = [ax1,ax2,ax3,ax4,ax5,ax6]
         for ax in (ax1,ax3,ax5):
             ax.set_ylabel(param_name_dict[parameter_1] + param_unit_dict[parameter_1],size=16)
+        for ax in (ax2,ax4,ax6):
+            ax.set_yticklabels([])
         for ax in (ax5,ax6):
             ax.set_xlabel(param_name_dict[parameter_2] + param_unit_dict[parameter_2],size=16)
+        for ax in (ax1,ax2,ax3,ax4):
+            ax.set_xticklabels([])
     else:
         ax1 = fig.add_axes([lowerx,lowery+ywidth,xwidth,ywidth])
         ax2 = fig.add_axes([lowerx+xwidth,lowery+ywidth,xwidth,ywidth])
@@ -359,7 +365,37 @@ def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parame
             ax.set_ylabel(param_name_dict[parameter_1] + param_unit_dict[parameter_1],size=16)
         for ax in (ax3,ax4):
             ax.set_xlabel(param_name_dict[parameter_2] + param_unit_dict[parameter_2],size=16)
+        for ax in (ax2,ax4):
+            ax.set_xlabel(param_name_dict[parameter_2] + param_unit_dict[parameter_2],size=16)
+        for ax in (ax1,ax2):
+            ax.set_xticklabels([])
 
+    for ax in (axlist):  #This sets the x and y limits
+        if xlimits==None:
+            ax.set_xlim(param_limit_dict[parameter_2])
+        else:
+            ax.set_xlim(xlimits)
+        if ylimits==None:
+            ax.set_ylim(param_limit_dict[parameter_1])
+        else:
+            ax.set_ylim(ylimits)
+
+        #Now, to hide the top ylabel value in some of the axes, the ones that are getting covered up
+    """labels = [item for item in ax3.get_yticklabels()]
+    labels[-1].text = ''
+    print labels
+    ax3.set_yticklabels(labels)
+
+    try:
+        labels = [item for item in ax5.get_yticklabels()]
+        labels[-1].text = ''
+        ax5.set_yticklabels(labels)
+    except NameError:
+        pass"""
+    #labels =  [item for item in ax3.get_yticklabels()]
+    #labels[-1].text = ""
+
+    ax3.xaxis.set_major_locator(MaxNLocator(prune='upper'))
 
     for i in range(len(time_values_to_use)):
         argument = min(range(len(times_list)), key=lambda j: abs(times_list[j]-time_values_to_use[i]))
