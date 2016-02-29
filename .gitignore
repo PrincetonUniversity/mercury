@@ -20,3 +20,5 @@ code_pdfs
 *candel*
 
 precision.f90
+
+*.pyc

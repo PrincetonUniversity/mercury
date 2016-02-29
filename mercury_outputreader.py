@@ -8,6 +8,7 @@ import glob
 import numpy as np
 import matplotlib.pyplot as pp
 import os
+import warnings
 from matplotlib.ticker import MaxNLocator
 
 
@@ -15,10 +16,23 @@ long_string_of_dashes = "-------------------------------------------------------
 
 class aei_info:
     def __init__(self,time_,a_,e_,i_,mass_):
-        assert( len(time_) == len(a_))
-        assert( len(time_) == len(e_))
-        assert( len(time_) == len(i_))
-        assert( len(time_) == len(mass_))
+        try:
+            assert( len(time_) == len(a_))
+            assert( len(time_) == len(e_))
+            assert( len(time_) == len(i_))
+            assert( len(time_) == len(mass_))
+        except TypeError:
+            assert( isinstance(time_,float))
+            assert( isinstance(a_,float))
+            assert( isinstance(e_,float))
+            assert( isinstance(i_,float))
+            assert( isinstance(mass_,float))
+            time_ = [time_]
+            a_    = [a_]
+            e_    = [e_]
+            i_    = [i_]
+            mass_ = [mass_]
+
         self.time = time_
         self.a    = a_
         self.e    = e_
@@ -91,13 +105,23 @@ def aei_aggregator(path_="./"):
     if not isinstance(path_, str):
         raise TypeError("The given path is not a string!")
     filelist, body_names = get_files("aei",path=path_)
-
+    
+    files_with_no_info = 0
     aei_list = []
-    for filename in filelist:
-        aei_list.append(aei_file_reader(filename))
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        for filename in filelist:
+            temp = aei_file_reader(filename)
+            if temp == False:
+                files_with_no_info += 1
+            else:
+                aei_list.append(temp)
 
     if len(filelist) != len(aei_list):
-        raise TypeError("Lengths are not the same between the two things to return! Why?")
+        if len(filelist) != ( len(aei_list) + files_with_no_info):
+            raise TypeError("Lengths are not the same between the two things to return! Why?")
+        else:
+            print "There were " + str(files_with_no_info) + " aei files with no info"
 
     return (body_names,aei_list)
 
@@ -106,7 +130,10 @@ def aei_file_reader(filename):
     """This reads in a specified *.aei file and returns an
     instance of the aei_info class, corresponding to the object"""
     temp = np.loadtxt(filename,unpack=True)
-    toreturn = aei_info(temp[0].tolist(),temp[1].tolist(),temp[2].tolist(),temp[3].tolist(),temp[4].tolist())
+    try:
+        toreturn = aei_info(temp[0].tolist(),temp[1].tolist(),temp[2].tolist(),temp[3].tolist(),temp[4].tolist())
+    except IndexError:
+        toreturn = False #In this case, there is no information on the object in the file, and we return false
     return toreturn
 
 
@@ -307,7 +334,7 @@ def mass_to_pointsize_converter(mass,scale=100):
     return temp
 
 
-def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parameter_2,round_time=False,number_of_digits_to_round_to=10,ylimits=None,xlimits=None):
+def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parameter_2,round_time=True,number_of_digits_to_round_to=1,year_unit="Myr",ylimits=None,xlimits=None):
     """This will plot a bunch of aei info similar to what John Chambers
     does.  time_values_to_use shows the time values that you want to plot
     at (the closest ones will be chosen)
@@ -319,12 +346,16 @@ def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parame
     of digits to round to.
     """
 
-    param_name_dict = {'e':"Eccentricity", 'a':"Semi-Major Axis", 'i':"Inclination", 'm':"Mass"}
+    param_name_dict = {'e':"Eccentricity", 'a':"Semi-Major Axis", 'i':"Inclination", 'mass':"Mass"}
     param_unit_dict = {'e':"", 'a':" (AU)", 'i':" (degrees)", 'mass':" (Mass Units)"}
-    param_limit_dict ={'e':(0,1),'a':(.2,2.6),'i':(0,90),'mass':(0,1e-4)}
+    param_limit_dict= {'e':(0,1),'a':(.2,2.6),'i':(0,90),'mass':(0,1e-4)}
+    year_unit_dict  = {"Myr":1.e6}
 
     if not ( (parameter_1 in param_name_dict) and (parameter_2 in param_name_dict) ):
         raise TypeError("I can't recognize at least one of the two parameters given to me, " + parameter_1 + "  " + parameter_2)
+
+    if year_unit not in year_unit_dict:
+        raise TypeError("I do not recognize this (case-sensitive) year unit name: " + year_unit)
 
     if len(time_values_to_use) > 6:
         raise TypeError("I can't plot more than six times at a time!")
@@ -381,6 +412,12 @@ def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parame
             ax.set_ylim(ylimits)
 
         #Now, to hide the top ylabel value in some of the axes, the ones that are getting covered up
+
+        print ax3.get_yticklabels()
+        labels = [tick.get_text() for tick in ax3.get_yticklabels()]
+        print labels
+        ax3.set_yticklabels(labels[:-1]) 
+        fig.canvas.draw()
     """labels = [item for item in ax3.get_yticklabels()]
     labels[-1].text = ''
     print labels
@@ -395,9 +432,14 @@ def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parame
     #labels =  [item for item in ax3.get_yticklabels()]
     #labels[-1].text = ""
 
-    ax3.xaxis.set_major_locator(MaxNLocator(prune='upper'))
+    #labels = ax3.get_yticklabels()
+    #labels[-1].set_text('')
+    #ax3.set_yticklabels(labels) 
 
-    for i in range(len(time_values_to_use)):
+
+    #ax3.xaxis.set_major_locator(MaxNLocator(prune='upper'))
+
+    for i in range(len(time_values_to_use)): #Plot the data
         argument = min(range(len(times_list)), key=lambda j: abs(times_list[j]-time_values_to_use[i]))
         print "Argument associated with time " + str(time_values_to_use[i]) + " is " + str(argument)
         print "    Time is " + str(times_list[argument]) + "  instead of " + str(time_values_to_use[i])
@@ -410,11 +452,53 @@ def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parame
         else:
             axlist[i].scatter( getattr(aeis_list[argument],parameter_2), getattr(aeis_list[argument],parameter_1))
 
+    #Now, put time labels on each plot
+    for i in range(len(time_values_to_use)):
+        if abs(time_values_to_use[i] - 0.0) <= 1e-9:
+            text = "Start"
+        else: #round_time=False,number_of_digits_to_round_to=1,
+            if round_time == True:
+                time = time_values_to_use[i]
+                order_of_magnitude = (np.log10(int(time_values_to_use[i])))
+                taken_to_the_bottom = time / 10**(int(order_of_magnitude)+1)
+                time = round(taken_to_the_bottom,number_of_digits_to_round_to)
+                time = time * (10**(int(order_of_magnitude)+1)/year_unit_dict[year_unit])
+                if time % 1 <= 1.e-3: #If the error introduced by multiplying this back up is small
+                    time = round(time)
+            else:
+                time = time_values_to_use[i]/year_unit_dict[year_unit]
+
+            text = str(int(time)) + " " +year_unit
+            if not time.is_integer():
+                print "###### Possible warning!  Possible warning!  ######"
+                print "The following cannot be represented as an integer with the given parameters:"
+
+                print "     " + str(time_values_to_use[i]) + " will be represented as" + text
+
+        axlist[i].text(0.03, 0.97,text, horizontalalignment='left',verticalalignment='top',transform=axlist[i].transAxes,size=16)
+
+                
+            
+
 
     return fig
 
 
+def plot_all_aeis_here(times=(0.,3e6,10e6,30e6,60e6,300e6)):
+    names, aei_functime = aei_aggregator()    
+    times_aei_output, aeis, numbers = aei_func_time(aei_functime)
 
+    fig = plot_aei_multiple(times,times_aei_output,aeis,'e','a',number_of_digits_to_round_to=2)
+    fig.savefig("e_vs_a.pdf")
+
+    fig = plot_aei_multiple(times,times_aei_output,aeis,'i','a',number_of_digits_to_round_to=2)
+    fig.savefig("i_vs_a.pdf")
+
+    fig = plot_aei_multiple(times,times_aei_output,aeis,'mass','a',number_of_digits_to_round_to=2)
+    fig.savefig("mass_vs_a.pdf")
+
+    fig = plot_aei_multiple(times,times_aei_output,aeis,'e','i',number_of_digits_to_round_to=2)
+    fig.savefig("e_vs_i.pdf")
 
 if __name__ == '__main__':
     """temp, tempcentral, tempejection = collision_info_extractor("info.out")
@@ -445,5 +529,5 @@ if __name__ == '__main__':
     print "     "
     print "     "
 
-    fig = plot_aei_multiple((0.,3e6,10e6,30e6,60e6,299e6),times,aeis,'e','a')
+    fig = plot_aei_multiple((0.,3e6,10e6,30e6,60e6,299e6),times,aeis,'e','a',number_of_digits_to_round_to=2)
     fig.savefig("tempfig.pdf")
