@@ -7,6 +7,8 @@
 import glob
 import numpy as np
 import matplotlib.pyplot as pp
+#import matplotlib 
+#print matplotlib.__version__
 import os
 import warnings
 from matplotlib.ticker import MaxNLocator
@@ -348,7 +350,7 @@ def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parame
 
     param_name_dict = {'e':"Eccentricity", 'a':"Semi-Major Axis", 'i':"Inclination", 'mass':"Mass"}
     param_unit_dict = {'e':"", 'a':" (AU)", 'i':" (degrees)", 'mass':" (Mass Units)"}
-    param_limit_dict= {'e':(0,1),'a':(.2,2.6),'i':(0,90),'mass':(0,1e-4)}
+    param_limit_dict= {'e':(0,1),'a':(.2,2.6),'i':(0,90),'mass':(0,2e-5)}
     year_unit_dict  = {"Myr":1.e6}
 
     if not ( (parameter_1 in param_name_dict) and (parameter_2 in param_name_dict) ):
@@ -378,6 +380,7 @@ def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parame
         ax5 = fig.add_axes([lowerx,lowery,xwidth,ywidth])
         ax6 = fig.add_axes([lowerx+xwidth,lowery,xwidth,ywidth])
         axlist = [ax1,ax2,ax3,ax4,ax5,ax6]
+        ax_ylist = [ax3,ax5]
         for ax in (ax1,ax3,ax5):
             ax.set_ylabel(param_name_dict[parameter_1] + param_unit_dict[parameter_1],size=16)
         for ax in (ax2,ax4,ax6):
@@ -392,6 +395,7 @@ def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parame
         ax3 = fig.add_axes([lowerx,lowery,xwidth,ywidth])
         ax4 = fig.add_axes([lowerx+xwidth,lowery,xwidth,ywidth])
         axlist = [ax1,ax2,ax3,ax4]
+        ax_ylist = [ax3]
         for ax in (ax1,ax3):
             ax.set_ylabel(param_name_dict[parameter_1] + param_unit_dict[parameter_1],size=16)
         for ax in (ax3,ax4):
@@ -411,33 +415,14 @@ def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parame
         else:
             ax.set_ylim(ylimits)
 
-        #Now, to hide the top ylabel value in some of the axes, the ones that are getting covered up
-
-        print ax3.get_yticklabels()
-        labels = [tick.get_text() for tick in ax3.get_yticklabels()]
-        print labels
-        ax3.set_yticklabels(labels[:-1]) 
-        fig.canvas.draw()
-    """labels = [item for item in ax3.get_yticklabels()]
-    labels[-1].text = ''
-    print labels
-    ax3.set_yticklabels(labels)
-
-    try:
-        labels = [item for item in ax5.get_yticklabels()]
-        labels[-1].text = ''
-        ax5.set_yticklabels(labels)
-    except NameError:
-        pass"""
-    #labels =  [item for item in ax3.get_yticklabels()]
-    #labels[-1].text = ""
-
-    #labels = ax3.get_yticklabels()
-    #labels[-1].set_text('')
-    #ax3.set_yticklabels(labels) 
+    fig.canvas.draw() #So that later I can update the y-axis labels
 
 
-    #ax3.xaxis.set_major_locator(MaxNLocator(prune='upper'))
+    #Now, to hide the top ylabel value in some of the axes, the ones that are getting covered up
+
+    for ax in ax_ylist:
+        labels = [tick.get_text() for tick in ax.get_yticklabels()]
+        ax.set_yticklabels(labels[:-1]) 
 
     for i in range(len(time_values_to_use)): #Plot the data
         argument = min(range(len(times_list)), key=lambda j: abs(times_list[j]-time_values_to_use[i]))
@@ -491,13 +476,13 @@ def plot_all_aeis_here(times=(0.,3e6,10e6,30e6,60e6,300e6)):
     fig = plot_aei_multiple(times,times_aei_output,aeis,'e','a',number_of_digits_to_round_to=2)
     fig.savefig("e_vs_a.pdf")
 
-    fig = plot_aei_multiple(times,times_aei_output,aeis,'i','a',number_of_digits_to_round_to=2)
+    fig = plot_aei_multiple(times,times_aei_output,aeis,'i','a',number_of_digits_to_round_to=2,ylimits=(0,45))
     fig.savefig("i_vs_a.pdf")
 
     fig = plot_aei_multiple(times,times_aei_output,aeis,'mass','a',number_of_digits_to_round_to=2)
     fig.savefig("mass_vs_a.pdf")
 
-    fig = plot_aei_multiple(times,times_aei_output,aeis,'e','i',number_of_digits_to_round_to=2)
+    fig = plot_aei_multiple(times,times_aei_output,aeis,'e','i',number_of_digits_to_round_to=2,ylimits=(0,45))
     fig.savefig("e_vs_i.pdf")
 
 if __name__ == '__main__':
