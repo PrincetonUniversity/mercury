@@ -482,7 +482,7 @@ def plot_all_aeis_here(times=(0.,3e6,10e6,30e6,60e6,300e6)):
     fig = plot_aei_multiple(times,times_aei_output,aeis,'mass','a',number_of_digits_to_round_to=2)
     fig.savefig("mass_vs_a.pdf")
 
-    fig = plot_aei_multiple(times,times_aei_output,aeis,'e','i',number_of_digits_to_round_to=2,ylimits=(0,45))
+    fig = plot_aei_multiple(times,times_aei_output,aeis,'e','i',number_of_digits_to_round_to=2,xlimits=(0,45))
     fig.savefig("e_vs_i.pdf")
 
 if __name__ == '__main__':
