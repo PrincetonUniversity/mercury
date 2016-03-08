@@ -453,12 +453,15 @@ def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parame
             else:
                 time = time_values_to_use[i]/year_unit_dict[year_unit]
 
-            text = str(int(time)) + " " +year_unit
+            if time >= 1.0:
+                text = str(int(time)) + " " +year_unit
+            else:#If time is a decimal
+                text = str(time) + " " + year_unit
             if not time.is_integer():
                 print "###### Possible warning!  Possible warning!  ######"
                 print "The following cannot be represented as an integer with the given parameters:"
 
-                print "     " + str(time_values_to_use[i]) + " will be represented as" + text
+                print "     " + str(time_values_to_use[i]) + " will be represented as " + text
 
         axlist[i].text(0.03, 0.97,text, horizontalalignment='left',verticalalignment='top',transform=axlist[i].transAxes,size=16)
 
@@ -469,17 +472,17 @@ def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parame
     return fig
 
 
-def plot_all_aeis_here(times=(0.,3e6,10e6,30e6,60e6,300e6)):
+def plot_all_aeis_here(times=(0.,3e6,10e6,30e6,60e6,300e6),a_limits=None):
     names, aei_functime = aei_aggregator()    
     times_aei_output, aeis, numbers = aei_func_time(aei_functime)
 
-    fig = plot_aei_multiple(times,times_aei_output,aeis,'e','a',number_of_digits_to_round_to=2)
+    fig = plot_aei_multiple(times,times_aei_output,aeis,'e','a',number_of_digits_to_round_to=2,xlimits=a_limits)
     fig.savefig("e_vs_a.pdf")
 
-    fig = plot_aei_multiple(times,times_aei_output,aeis,'i','a',number_of_digits_to_round_to=2,ylimits=(0,45))
+    fig = plot_aei_multiple(times,times_aei_output,aeis,'i','a',number_of_digits_to_round_to=2,ylimits=(0,45),xlimits=a_limits)
     fig.savefig("i_vs_a.pdf")
 
-    fig = plot_aei_multiple(times,times_aei_output,aeis,'mass','a',number_of_digits_to_round_to=2)
+    fig = plot_aei_multiple(times,times_aei_output,aeis,'mass','a',number_of_digits_to_round_to=2,xlimits=a_limits)
     fig.savefig("mass_vs_a.pdf")
 
     fig = plot_aei_multiple(times,times_aei_output,aeis,'e','i',number_of_digits_to_round_to=2,xlimits=(0,45))
