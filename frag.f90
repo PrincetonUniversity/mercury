@@ -3930,7 +3930,11 @@
       end if
 !
 ! Stop the integration for any reason?
-      if (flag_stop) return
+      if (flag_stop) then 
+         !Write how many bodies there are at this time and stop
+         write(*,*) "Number of big bodies at time ", t/YEAR, " years is: ", nbig
+         return
+      end if
 
 ! Go on to the next time step
     end do
