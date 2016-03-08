@@ -95,7 +95,7 @@ class ejection_information:
 #        self.mass = mass_
 
 class numberofbodies_functime:
-    def __init(self,time_,number_):
+    def __init__(self,time_,number_):
         self.time = time_
         self.numberbodies = number_
 
@@ -228,7 +228,7 @@ def numberofbodies_functime_reader(filename):
     f = open(filename, 'r')
     toreturn = []
     for line in f:
-        if line[0] != "Number of big bodies":
+        if line[0:21] != " Number of big bodies":
             continue
         temp = line.split()
         if len(temp) !=10:
@@ -322,9 +322,13 @@ def collision_info_extractor(filename):
     else:
         raise TypeError("Did not find any information in file " + filename)
 
-
+##########################
+##########################
 ###Plotting functions
 
+##########################
+##########################
+##########################
 def mass_to_pointsize_converter(mass,scale=100):
     """Calculates a rough radius from the mass
     and scales it according to a given parameter, for the size of 
@@ -471,6 +475,38 @@ def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parame
 
     return fig
 
+def plot_number_func_time(filename="stdout.out"):
+    """This will plot the number of big bodies as a function of time,
+    as read from a specified file name.  The default file name is stdout.out,
+    since it is to the stdout that the number of bodies is written 
+    in the code."""
+
+    fig = pp.figure()
+    num_func_time = numberofbodies_functime_reader(filename)
+    t = []
+    num = []
+    for i in range(len(num_func_time)):
+        t.append(num_func_time[i].time)
+        num.append(num_func_time[i].numberbodies)
+
+    if t[-1] > 1e9:
+        unit = "Gyr"
+        t = np.divide(t,1e9)
+    elif t[-1] > 1e6:
+        unit = "Myr"
+        t = np.divide(t,1e6)
+    elif t[-1] > 1e3:
+        unit = "Kyr"
+        t = np.divide(t,1e3)
+    else:
+        unit = "years"
+
+    pp.step(t,num,where='post',lw=2)
+    pp.xlabel("Time (" + unit + ")")
+    pp.ylabel("Number of bodies")
+
+    return fig
+
 
 def plot_all_aeis_here(times=(0.,3e6,10e6,30e6,60e6,300e6),a_limits=None):
     names, aei_functime = aei_aggregator()    
@@ -487,6 +523,8 @@ def plot_all_aeis_here(times=(0.,3e6,10e6,30e6,60e6,300e6),a_limits=None):
 
     fig = plot_aei_multiple(times,times_aei_output,aeis,'e','i',number_of_digits_to_round_to=2,xlimits=(0,45))
     fig.savefig("e_vs_i.pdf")
+
+
 
 if __name__ == '__main__':
     """temp, tempcentral, tempejection = collision_info_extractor("info.out")
