@@ -837,6 +837,7 @@
     call cpu_time(time_start)
 ! Set up the initial conditions
     call setup (n,nbig,m,x,v,s,ngf,rho,rce_hill,status,index,name)
+    write(*,*) "Number of big bodies at time 0 years is: ", nbig
 !
 ! Do the integration
     if (algor == 10) &
