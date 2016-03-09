@@ -469,11 +469,54 @@ def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parame
 
         axlist[i].text(0.03, 0.97,text, horizontalalignment='left',verticalalignment='top',transform=axlist[i].transAxes,size=16)
 
-                
-            
+  
+    return fig
 
+def plot_collision_scatterplot(filename="info.out"):              
+    """This function will take a info.out file and plot up a scatter plot of all the
+    collisions in the v/vesc and r/R_target plane.  It returns this figure."""
+
+    markers_touse = ("o","^","s","D")
+    colors_touse = ( (146./255.,0,0),(0,109./255.,219./255.),(36./255.,255./255.,36./255.),(219./255.,209./255.,0))
+
+    collisions, central_collisions, ejections = collision_info_extractor(filename)
+    print "Number of central collisions:   " + str(len(central_collisions))
+    print "Number of ejections:            " + str(len(ejections))
+    print " "
+    print "Number of collisions:           " + str(len(collisions))
+
+    merger = []
+    grow   = []
+    erode  = []
+    hitandrun=[]
+
+    for i in range(len(collisions)):
+        if collisions[i].classification in (collision_type.SIMPLE_MERGER, collision_type.EFFECTIVE_MERGER, collision_type.GRAZE_MERGER):
+            merger.append(collisions[i])
+        elif collisions[i].classification == collision_type.HIT_AND_RUN:
+            hitandrun.append(collisions[i])
+        elif collisions[i].masslargestremnant_mtarget_ratio >= 1.0:
+            grow.append(collisions[i])
+        elif collisions[i].masslargestremnant_mtarget_ratio < 1.0:
+            erode.append(collisions[i])
+        else:
+            raise TypeError("I don't know what to do with this body, as far as its collision is concerned, body " + str(i))
+
+    fig = pp.figure()
+
+    pp.scatter([ item.B_Rtarg_ratio for item in merger], [ item.vimpact_vescape_ratio for item in merger],marker=markers_touse[0],color=colors_touse[0],label="merger")
+    pp.scatter([ item.B_Rtarg_ratio for item in grow],  [item.vimpact_vescape_ratio for item in grow],marker=markers_touse[1],color=colors_touse[1],label="grow")
+    pp.scatter([ item.B_Rtarg_ratio for item in erode],  [item.vimpact_vescape_ratio for item in erode],marker=markers_touse[2],color=colors_touse[2],label="erode")
+    pp.scatter([ item.B_Rtarg_ratio for item in hitandrun], [item.vimpact_vescape_ratio for item in hitandrun],marker=markers_touse[3],color=colors_touse[3],label="hit & run")
+    pp.xlabel("b/R$_{\mathrm{target} }$",size=16)
+    pp.ylabel("$v/v_{esc}$",size=16)
+    pp.legend(loc="best")
 
     return fig
+
+
+
+
 
 def plot_number_func_time(filename="stdout.out"):
     """This will plot the number of big bodies as a function of time,
