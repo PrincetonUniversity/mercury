@@ -17,7 +17,7 @@ from matplotlib.ticker import MaxNLocator
 long_string_of_dashes = "---------------------------------------------------------------------"
 
 class aei_info:
-    def __init__(self,time_,a_,e_,i_,mass_):
+    def __init__(self,name_,time_,a_,e_,i_,mass_):
         try:
             assert( len(time_) == len(a_))
             assert( len(time_) == len(e_))
@@ -25,6 +25,7 @@ class aei_info:
             assert( len(time_) == len(mass_))
         except TypeError:
             assert( isinstance(time_,float))
+            assert( isinstance(name_,str))
             assert( isinstance(a_,float))
             assert( isinstance(e_,float))
             assert( isinstance(i_,float))
@@ -35,6 +36,7 @@ class aei_info:
             i_    = [i_]
             mass_ = [mass_]
 
+        self.name = name_
         self.time = time_
         self.a    = a_
         self.e    = e_
@@ -43,11 +45,12 @@ class aei_info:
 
 
 class aei_singletime:
-    def __init__(self,a_,e_,i_,mass_):
+    def __init__(self,name_,a_,e_,i_,mass_):
         #assert( not isinstance(a_,list))
         #assert( not isinstance(e_,list))
         #assert( not isinstance(i_,list))
         #assert( not isinstance(mass_,list))
+        self.name  = name_ #Names of the objects
         self.a     = a_
         self.e     = e_
         self.i     = i_
@@ -112,8 +115,8 @@ def aei_aggregator(path_="./"):
     aei_list = []
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        for filename in filelist:
-            temp = aei_file_reader(filename)
+        for j in range(len(filelist)):
+            temp = aei_file_reader(filelist[j],body_names[j])
             if temp == False:
                 files_with_no_info += 1
             else:
@@ -128,12 +131,12 @@ def aei_aggregator(path_="./"):
     return (body_names,aei_list)
 
 
-def aei_file_reader(filename):
+def aei_file_reader(filename,bodyname="blank"):
     """This reads in a specified *.aei file and returns an
     instance of the aei_info class, corresponding to the object"""
     temp = np.loadtxt(filename,unpack=True)
     try:
-        toreturn = aei_info(temp[0].tolist(),temp[1].tolist(),temp[2].tolist(),temp[3].tolist(),temp[4].tolist())
+        toreturn = aei_info(bodyname,temp[0].tolist(),temp[1].tolist(),temp[2].tolist(),temp[3].tolist(),temp[4].tolist())
     except IndexError:
         toreturn = False #In this case, there is no information on the object in the file, and we return false
     return toreturn
@@ -172,6 +175,7 @@ def aei_func_time(aei_info_list):
 
     for i in range(len(time_list)):
         time_lookingat = time_list[i]
+        name_just_thistime=[]
         a_just_thistime = []
         e_just_thistime = []
         i_just_thistime = []
@@ -179,6 +183,7 @@ def aei_func_time(aei_info_list):
         for j in range(len(aei_info_list)):
             try:
                 indextouse = aei_info_list[j].time.index(time_lookingat)
+                name_just_thistime.append(aei_info_list[j].name)
                 a_just_thistime.append(aei_info_list[j].a[indextouse])
                 e_just_thistime.append(aei_info_list[j].e[indextouse])
                 i_just_thistime.append(aei_info_list[j].i[indextouse])
@@ -186,7 +191,7 @@ def aei_func_time(aei_info_list):
             except ValueError:
                 continue
 
-        aei_list_full.append(aei_singletime(a_just_thistime, e_just_thistime, i_just_thistime, mass_just_thistime) )
+        aei_list_full.append(aei_singletime(name_just_thistime,a_just_thistime, e_just_thistime, i_just_thistime, mass_just_thistime) )
 
     number_of_objects = [ len(aei_list_full[k].a) for k in range(len(aei_list_full)) ]
 
@@ -472,7 +477,7 @@ def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parame
   
     return fig
 
-def plot_collision_scatterplot(filename="info.out"):              
+def plot_collision_scatterplot(filename="info.out",whichones=None,title=""):              
     """This function will take a info.out file and plot up a scatter plot of all the
     collisions in the v/vesc and r/R_target plane.  It returns this figure."""
 
@@ -490,17 +495,32 @@ def plot_collision_scatterplot(filename="info.out"):
     erode  = []
     hitandrun=[]
 
-    for i in range(len(collisions)):
-        if collisions[i].classification in (collision_type.SIMPLE_MERGER, collision_type.EFFECTIVE_MERGER, collision_type.GRAZE_MERGER):
-            merger.append(collisions[i])
-        elif collisions[i].classification == collision_type.HIT_AND_RUN:
-            hitandrun.append(collisions[i])
-        elif collisions[i].masslargestremnant_mtarget_ratio >= 1.0:
-            grow.append(collisions[i])
-        elif collisions[i].masslargestremnant_mtarget_ratio < 1.0:
-            erode.append(collisions[i])
-        else:
-            raise TypeError("I don't know what to do with this body, as far as its collision is concerned, body " + str(i))
+    if whichones == None:
+        for i in range(len(collisions)):
+            if collisions[i].classification in (collision_type.SIMPLE_MERGER, collision_type.EFFECTIVE_MERGER, collision_type.GRAZE_MERGER):
+                merger.append(collisions[i])
+            elif collisions[i].classification == collision_type.HIT_AND_RUN:
+                hitandrun.append(collisions[i])
+            elif collisions[i].masslargestremnant_mtarget_ratio >= 1.0:
+                grow.append(collisions[i])
+            elif collisions[i].masslargestremnant_mtarget_ratio < 1.0:
+                erode.append(collisions[i])
+            else:
+                raise TypeError("I don't know what to do with this body, as far as its collision is concerned, body " + str(i))
+
+    else:
+        for i in range(len(collisions)):
+            if collisions[i].target_name in whichones or collisions[i].projectile_name in whichones:
+                if collisions[i].classification in (collision_type.SIMPLE_MERGER, collision_type.EFFECTIVE_MERGER, collision_type.GRAZE_MERGER):
+                    merger.append(collisions[i])
+                elif collisions[i].classification == collision_type.HIT_AND_RUN:
+                    hitandrun.append(collisions[i])
+                elif collisions[i].masslargestremnant_mtarget_ratio >= 1.0:
+                    grow.append(collisions[i])
+                elif collisions[i].masslargestremnant_mtarget_ratio < 1.0:
+                    erode.append(collisions[i])
+                else:
+                    raise TypeError("I don't know what to do with this body, as far as its collision is concerned, body " + str(i))
 
     fig = pp.figure()
 
@@ -511,6 +531,7 @@ def plot_collision_scatterplot(filename="info.out"):
     pp.xlabel("b/R$_{\mathrm{target} }$",size=16)
     pp.ylabel("$v/v_{esc}$",size=16)
     pp.legend(loc="best")
+    pp.title(title)
 
     return fig
 
@@ -546,6 +567,7 @@ def plot_number_func_time(filename="stdout.out"):
 
     pp.step(t,num,where='post',lw=2)
     pp.xlabel("Time (" + unit + ")")
+    pp.xscale('log')
     pp.ylabel("Number of bodies")
 
     return fig
