@@ -5650,6 +5650,7 @@
       write (23,'(a,es10.4)')     '   J6:                       ',j6 / rcen**6
       write (23,'(a,es10.4,a)')   '   Ejection distance:        ',rmax / AU,' AU'
       write (23,'(a,es10.4,a)')   '   Radius of central body:   ',rcen / AU,' AU'
+      write (23,'(a,I10)')        '   NMAX:                     ',NMAX
       write (23,*)
 !
       if (.not.opt_no_encounters) write (23,'(2a)') '   Stop after ', &
