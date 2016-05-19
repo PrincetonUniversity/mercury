@@ -553,6 +553,7 @@ def plot_number_func_time(filename="stdout.out"):
         t.append(num_func_time[i].time)
         num.append(num_func_time[i].numberbodies)
 
+    #print t
     if t[-1] > 1e9:
         unit = "Gyr"
         t = np.divide(t,1e9)

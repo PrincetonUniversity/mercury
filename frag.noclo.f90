@@ -104,7 +104,7 @@
     module swift
       use kinds
 ! Maximum array size
-     integer(I4), parameter::NPLMAX = 4096 !2048  ! max number of planets, including the Sun 
+     integer(I4), parameter::NPLMAX = 2048  ! max number of planets, including the Sun 
      integer(I4), parameter::NTPMAX = 2048 ! max number of test particles
 ! Size of the test particle status flag
       integer(I4), parameter::NSTAT = 3
@@ -2384,30 +2384,33 @@
         end if
 !
 ! If minimum separation qualifies as an encounter or a collision occurs, store details
-        if ((d2min <= d2ce.and.d0t*dt <= 0.and.d1t*dt >= 0).or.(d2min <= d2hit)) then
-          nclo = nclo  +  1
-          if (nclo > NMAX) then
- 230        open (23,file=outfile(3),status='old',access='append',err=230)
-            write (23,'(/,2a,/,a)') ' WARNING: ', &
-              'Total number of current close encounters exceeds NMAX.'
-            close (23)
-          else
-            clo(nclo) % i = itarg
-            clo(nclo) % j = iproj
-            clo(nclo) % t = tmin  +  t
-            clo(nclo) % d = sqrt(d2min)
-            clo(nclo) % im= m(i)
-            clo(nclo) % jm= m(j)
+!        if ((d2min <= d2ce.and.d0t*dt <= 0.and.d1t*dt >= 0).or.(d2min <= d2hit)) then
+!          nclo = nclo  +  1
+!          if (nclo > NMAX) then
+! 230        open (23,file=outfile(3),status='old',access='append',err=230)
+!            write (23,'(/,2a,/,a)') ' WARNING: ', &
+!              'Total number of current close encounters exceeds CMAX.'
+!            close (23)
+!          else
+!            clo(nclo) % i = itarg
+!            clo(nclo) % j = iproj
+!            clo(nclo) % t = tmin  +  t
+!            clo(nclo) % d = sqrt(d2min)
+!            clo(nclo) % im= m(i)
+!            clo(nclo) % jm= m(j)
 !
 ! Make linear interpolation to estimate coordinates at time of closest approach
-            tmp1 = -tmin / dt
-            tmp0 = ONE  -  tmp1
-            clo(nclo) % ix(:) = tmp0 * x0(:,i)  +  tmp1 * x1(:,i)
-            clo(nclo) % iv(:) = tmp0 * v0(:,i)  +  tmp1 * v1(:,i)
-            clo(nclo) % jx(:) = tmp0 * x0(:,j)  +  tmp1 * x1(:,j)
-            clo(nclo) % jv(:) = tmp0 * v0(:,j)  +  tmp1 * v1(:,j)
+!            tmp1 = -tmin / dt
+!            tmp0 = ONE  -  tmp1
+!            clo(nclo) % ix(:) = tmp0 * x0(:,i)  +  tmp1 * x1(:,i)
+!            clo(nclo) % iv(:) = tmp0 * v0(:,i)  +  tmp1 * v1(:,i)
+!            clo(nclo) % jx(:) = tmp0 * x0(:,j)  +  tmp1 * x1(:,j)
+!            clo(nclo) % jv(:) = tmp0 * v0(:,j)  +  tmp1 * v1(:,j)
             ! Store details of any collisions
             if (d2min <= d2hit) then
+               tmp1 = -tmin / dt      !Added
+               tmp0 = ONE  -  tmp1    !Added
+               nclo = nclo  +  1      !Added
                nhit = nhit  +  1
                hit(nhit) % i = itarg
                hit(nhit) % j = iproj
@@ -2424,8 +2427,8 @@
 !               write(*,*) hit(nhit) % jx(:)
 !               write(*,*) hit(nhit) % jv(:)
             end if
-          end if
-        end if
+          !end if
+         !end if
 !
 
 !
@@ -3849,6 +3852,8 @@
           temp = time  +  time_bs
           call check_encounters (temp,dt_bs,ncrit,ncrit_big,mbs,x0,v0,xbs,vbs,radbs, &
             rcebs,namebs,nclo,clo,nhit,hit)
+!      The following line, since it only cares about nhit > 0, only outputs data for
+!        collisions, not non-collision close encounters
           if (nhit > 0) call output_encounters (ncrit,ncrit_big,rhobs,statusbs, &
               indexbs,namebs,nhit,hit,m)
 !
@@ -3884,10 +3889,10 @@
           rho(i)   = rhobs(k);        status(i)   = statusbs(k)
           name(i)  = namebs(k);       index(i)    = indexbs(k)
         end do
-        do k = 1, nclo
-          clo(k) % i = icrit(clo(k) % i)
-          clo(k) % j = icrit(clo(k) % j)
-        end do
+!        do k = 1, nclo
+!          clo(k) % i = icrit(clo(k) % i)
+!          clo(k) % j = icrit(clo(k) % j)
+!        end do
       end if
 !------------------------------------------------------------------------------
 !  CONTINUE  THE  NORMAL  TIME  STEP
