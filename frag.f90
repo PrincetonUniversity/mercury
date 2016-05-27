@@ -824,6 +824,7 @@
     use constants;    use globals
     use interfaces, only: driver_hybrid, driver_mvs, driver_variable_step, &
       finish, setup
+
     implicit none
 !
     integer(I4)::n,nbig,index(NMAX)
@@ -3710,6 +3711,15 @@
       collide_central, convert_vhelio_to_bary, convert_vbary_to_helio, &
       drift, ejections, jump, output_coords, output_datadump, output_encounters, &
       output_progress, remove_dead_bodies, output_codes
+
+!    #ifdef f2003
+    use iso_fortran_env, only : stdout=>output_unit
+!    #else
+!    #define stdin  5
+!    #define stdout 6
+!    #define stderr 0
+!    #endif
+
     implicit none
     integer(I4),  intent(inout)::n,nbig,index(:)
     real(R8),     intent(inout)::m(:),x(:,:),v(:,:),s(:,:),ngf(:,:),rho(:),rce_hill(:)
@@ -3771,6 +3781,10 @@
 !------------------------------------------------------------------------------
 !  ADVANCE  ONE  TIMESTEP
 !
+
+!  Flush to stdout, so I can keep better track of what's happening in the code
+      flush(stdout)
+
 ! If necessary, recalculate accelerations
       if (flag_accel) then
         a(:,1:n) = accel_hybrid (n,nbig,m,x,v,ngf,rcrit)
