@@ -3577,6 +3577,10 @@
       mcen = msum
       scen(:) = scen(:)  +  s(:,i)  +  mredu * cross_product(xrel, vrel)
 !
+!  Added by Joshua Wallace
+!  Print out mass of central body, make sure still makes sense
+        write (23,'(a,ES12.1,a,ES12.1)') '    new central mass: ', mcen/MSUN, ', merging body old mass: ', m(i)/MSUN
+
 ! Flag the lost body for removal
       m(i) = ZERO
       s(:,i) = ZERO
@@ -5249,6 +5253,12 @@
 ! Change status of newly empty particles
     status((n+1-nelim):n) = 'empty'
 !
+! Let us know how many bodies have been eliminated
+    if (nelim > 0) then
+       write(23,*) " Number of bodies eliminated: ", nelim
+       write(23,*) " Total number of bodies before elimination: ",n
+    end if
+
 ! Update total number of bodies and big bodies
     n    = n     -  nelim
     nbig = nbig  -  nbigelim
