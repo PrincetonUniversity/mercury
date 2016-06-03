@@ -528,8 +528,11 @@ def plot_collision_scatterplot(filename="info.out",whichones=None,title=""):
     pp.scatter([ item.B_Rtarg_ratio for item in grow],  [item.vimpact_vescape_ratio for item in grow],marker=markers_touse[1],color=colors_touse[1],label="grow")
     pp.scatter([ item.B_Rtarg_ratio for item in erode],  [item.vimpact_vescape_ratio for item in erode],marker=markers_touse[2],color=colors_touse[2],label="erode")
     pp.scatter([ item.B_Rtarg_ratio for item in hitandrun], [item.vimpact_vescape_ratio for item in hitandrun],marker=markers_touse[3],color=colors_touse[3],label="hit & run")
+    pp.axhline(y=1,color='black',linestyle='--')
     pp.xlabel("b/R$_{\mathrm{target} }$",size=16)
     pp.ylabel("$v/v_{esc}$",size=16)
+    pp.ylim(bottom=0)
+    pp.xlim(left=0)
     pp.legend(loc="best")
     pp.title(title)
 
