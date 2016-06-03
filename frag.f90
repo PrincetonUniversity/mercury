@@ -3739,7 +3739,7 @@
     character(8), intent(inout)::name(:)
     character(5), intent(inout)::status(:)
 !
-    integer(I4)::i,j,k,nclo,nhit,ncrit,ncrit_big,ncrit_old
+    integer(I4)::i,j,k,nclo,nhit,ncrit,ncrit_big,ncrit_old,multiple_collisions
     real(R8)::dt,dtby2,gmcen,t,temp
     real(R8)::a(3,NMAX),rcrit(NMAX),rad(NMAX),x0(3,NMAX),v0(3,NMAX)
     type(encounter)::clo(NMAX),hit(NMAX)
@@ -6961,9 +6961,10 @@
 !
 !
       subroutine check_multiple_collisions (hit,nhit,multiple_collisions)
+        use kinds
 
         implicit none
-        integer(I4):: k,l,body_1
+        integer(I4)::k,l,body_1
         integer(I4),     intent(out)::multiple_collisions
         type(encounter), intent(in)::hit(:)
         integer(I4),     intent(in)::nhit
