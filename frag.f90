@@ -2686,16 +2686,28 @@
       write (23,'(a,f9.4)')   '  Vimp / Vesc:      ', sqrt(v2imp / v2esc)
       write (23,'(a,f9.4)')   '  Vgm  / Vesc:      ', sqrt(v2gm  / v2esc)
       write (23,*)
-      write (23,'(a,f9.4)')   '  M1 / Msum:        ', m1 / msum
-      write (23,'(a,f9.4)')   '  M1 / Mtarg:       ', m1 / m(itarg)
-      write (23,'(a,f9.4)')   '  Mfrag / Mfragmin: ', (msum - m1) / mfrag_min
+!      write (23,'(a,f9.4)')   '  M1 / Msum:        ', m1 / msum
+!      write (23,'(a,f9.4)')   '  M1 / Mtarg:       ', m1 / m(itarg)
+!      write (23,'(a,f9.4)')   '  Mfrag / Mfragmin: ', (msum - m1) / mfrag_min
 !
 ! Simple merger
       if (v2imp <= v2esc) then
+!  If it's really a simple merger, then these are the values that actually occur, 
+!    not the ratios that were originally written and are commented out above.
+         write (23,'(a,f9.4)')   '  M1 / Msum:        ', 1.0
+         write (23,'(a,f9.4)')   '  M1 / Mtarg:       ', msum / m(itarg)
+         write (23,'(a,f9.4)')   '  Mfrag / Mfragmin: ', 0.0
+
         text = ' simply merged with      '
         call write_coll_text (t,name(itarg),name(iproj),text,25)
         call merge_bodies (itarg,iproj,m,x,v,s,status,name)
       else
+
+! Write these actual values
+      write (23,'(a,f9.4)')   '  M1 / Msum:        ', m1 / msum
+      write (23,'(a,f9.4)')   '  M1 / Mtarg:       ', m1 / m(itarg)
+      write (23,'(a,f9.4)')   '  Mfrag / Mfragmin: ', (msum - m1) / mfrag_min
+
 !
 ! NON-GRAZING REGIME
         if (b < rad(itarg)) then
