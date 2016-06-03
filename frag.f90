@@ -3899,8 +3899,8 @@
               call collide_bodies (t,i,j,ncrit,ncrit_big,mbs,x0,v0,xbs,vbs,sbs,ngfbs, &
                 rhobs,rcebs,radbs,rcritbs,statusbs,indexbs,namebs)
               flag_collision = .true.
-              write(*,*) "Number of big bodies at time ", t/YEAR, " years is: ", nbig
             end do
+            write(*,*) "Number of big bodies at time ", t/YEAR, " years is: ", nbig
           end if
 !
 ! If we have integrated for long enough, stop the Bulirsch-Stoer integration
@@ -5316,6 +5316,8 @@
           'xxx','xxx','xxx','xxx','xxx','xxx','xxx','xxx','xxx','xxx', &
           'COR','Cor','cor','cor','cor','HYB','Hyb','hyb','HY ','hy ', &
           'CLO','Clo','clo','CB ','cb ','WID','Wid','wid','WB ','wb '/)
+!------------------------------------------------------------------------------
+    write(*,*) "setup() is being called"
 !------------------------------------------------------------------------------
     filnam(1:40)  = '                                        '
     filnam(41:80) = '                                        '
