@@ -532,7 +532,16 @@
       character(8), intent(in)::name(:)
       type(encounter), intent(inout)::clo(:),hit(:)
       end subroutine check_encounters
-    end interface
+   end interface
+
+   interface
+      subroutine check_multiple_collisions (hit,nhit,multiple_collisions)
+        use kinds
+        integer(I4),     intent(out)::multiple_collisions
+        type(encounter), intent(in)::hit(:)
+        integer(I4),     intent(in)::nhit
+      end subroutine check_multiple_collisions
+   end interface
 !
     interface
       subroutine collide_bodies (t,i,j,n,nbig,m,x0,v0,x,v,s,ngf,rho,rce_hill,rad, &
@@ -3714,7 +3723,7 @@
       check_central, check_critical, check_encounters, collide_bodies, &
       collide_central, convert_vhelio_to_bary, convert_vbary_to_helio, &
       drift, ejections, jump, output_coords, output_datadump, output_encounters, &
-      output_progress, remove_dead_bodies, output_codes
+      output_progress, remove_dead_bodies, output_codes, check_multiple_collisions
 
 !    #ifdef f2003
     use iso_fortran_env, only : stdout=>output_unit
@@ -3870,6 +3879,19 @@
           if (nhit > 0) call output_encounters (ncrit,ncrit_big,rhobs,statusbs, &
               indexbs,namebs,nhit,hit,m)
 !
+! Check that there are no multiple collisions for a single body
+          call check_multiple_collisions(hit,nhit,multiple_collisions)
+
+! If there have been multiple collisions, quit gracefully
+          if (multiple_collisions == 1) then
+             call finish (n,nbig,m,x,v,s,ngf,rho,rce_hill,status,index,name)
+50           open  (23, file=outfile(3), status='old', access='append', err=50)
+             write (23,'(/,a)') '   Integration quit because of multiple body collision.'
+             write (*,'(a)')   '    Integration quit because of multiple body collision.'
+             close (23)
+          end if
+
+
 ! Resolve any collisions that occurred
           if (nhit > 0.and.opt_collisions) then
             do k = 1, nhit
@@ -6930,3 +6952,33 @@
       end subroutine mco_x2ov
 
 
+!=============================================================================
+! Checks the collision list for bodies involved in multiple collisions
+! The code currently can't handle anything beyond one two-body collision per
+! timestep for each body, so this subroutine will cause the code to quit
+!
+!
+!
+!
+      subroutine check_multiple_collisions (hit,nhit,multiple_collisions)
+
+        implicit none
+        integer(I4):: k,l,body_1
+        integer(I4),     intent(out)::multiple_collisions
+        type(encounter), intent(in)::hit(:)
+        integer(I4),     intent(in)::nhit
+
+        multiple_collisions = 0
+        
+        do k = 1, nhit
+           body_1 = hit(k) % i
+           do l = k+1, nhit
+              if (body_1 == hit(l) % i.or.body_1 == hit(l) % j) then
+                 multiple_collisions = 1
+                 return
+              end if
+           end do
+        end do
+
+      end subroutine check_multiple_collisions
+              
