@@ -2679,7 +2679,7 @@
 !..boundary between graze & merge and hit & run (Genda et al. 2012)
       zeta = ((m(itarg)  -  m(iproj)) / msum)**2
       fac = (ONE  -  b / rsum)**2.5_R8
-      v2gm = v2esc * (C1 * zeta * fac  +  C2 * zeta  +  C3 * fac  +  C4)
+      v2gm = v2esc * (C1 * zeta * fac  +  C2 * zeta  +  C3 * fac  +  C4)**2 !Bug fixed here, should be squared
 !
       write (23,'(a,f9.4)')   '  Mp / Mt:          ', m(iproj) / m(itarg)
       write (23,'(a,f9.4)')   '  b  / Rtarg:       ', b / rad(itarg)
