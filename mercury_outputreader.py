@@ -528,7 +528,8 @@ def plot_collision_scatterplot(filename="info.out",whichones=None,title=""):
     graze_merger = []
     grow   = []
     erode  = []
-    hitandrun=[]
+    hitandrun_nofrag=[]
+    hitandrun_frag  =[]
 
     if whichones == None:
         for i in range(len(collisions)):
@@ -541,7 +542,10 @@ def plot_collision_scatterplot(filename="info.out",whichones=None,title=""):
             elif collisions[i].classification ==  collision_type.GRAZE_MERGER:
                 graze_merger.append(collisions[i])
             elif collisions[i].classification == collision_type.HIT_AND_RUN:
-                hitandrun.append(collisions[i])
+                if collisions[i].number_of_fragments == 0:
+                    hitandrun_nofrag.append(collisions[i])
+                else:
+                    hitandrun_frag.append(collisions[i])
             elif collisions[i].masslargestremnant_mtarget_ratio >= 1.0:
                 grow.append(collisions[i])
             elif collisions[i].masslargestremnant_mtarget_ratio < 1.0:
@@ -561,7 +565,10 @@ def plot_collision_scatterplot(filename="info.out",whichones=None,title=""):
                 elif collisions[i].classification ==  collision_type.GRAZE_MERGER:
                     graze_merger.append(collisions[i])
                 elif collisions[i].classification == collision_type.HIT_AND_RUN:
-                    hitandrun.append(collisions[i])
+                    if collisions[i].number_of_fragments == 0:
+                        hitandrun_nofrag.append(collisions[i])
+                    else:
+                        hitandrun_frag.append(collisions[i])
                 elif collisions[i].masslargestremnant_mtarget_ratio >= 1.0:
                     grow.append(collisions[i])
                 elif collisions[i].masslargestremnant_mtarget_ratio < 1.0:
@@ -576,7 +583,8 @@ def plot_collision_scatterplot(filename="info.out",whichones=None,title=""):
     pp.scatter([ item.B_Rtarg_ratio for item in graze_merger], [ item.vimpact_vescape_ratio for item in graze_merger],marker=markers_touse[0],color="cyan",label="grazing merger")
     pp.scatter([ item.B_Rtarg_ratio for item in grow],  [item.vimpact_vescape_ratio for item in grow],marker=markers_touse[1],color=colors_touse[1],label="frag & grow")
     pp.scatter([ item.B_Rtarg_ratio for item in erode],  [item.vimpact_vescape_ratio for item in erode],marker=markers_touse[2],color=colors_touse[2],label="frag & erode")
-    pp.scatter([ item.B_Rtarg_ratio for item in hitandrun], [item.vimpact_vescape_ratio for item in hitandrun],marker=markers_touse[3],color=colors_touse[3],label="hit & run")
+    pp.scatter([ item.B_Rtarg_ratio for item in hitandrun_nofrag], [item.vimpact_vescape_ratio for item in hitandrun_nofrag],marker=markers_touse[3],color="magenta",label="hit & run no frag")
+    pp.scatter([ item.B_Rtarg_ratio for item in hitandrun_frag], [item.vimpact_vescape_ratio for item in hitandrun_frag],marker=markers_touse[3],color=colors_touse[3],label="hit & run frag")
     pp.axhline(y=1,color='black',linestyle='--')
     pp.xlabel("b/R$_{\mathrm{target} }$",size=16)
     pp.ylabel("$v/v_{esc}$",size=16)
