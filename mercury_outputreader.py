@@ -66,7 +66,7 @@ class collision_type:
     GRAZING_FRAG = 6  #if grazing regime and fragmentstime
 
 class collision_information:
-    def __init__(self,target_name_,projectile_name_,time_,classification_,vimpact_vescape_ratio_,vgrazemerge_vescape_ratio_,B_Rtarg_ratio_,masslargestremnant_msum_ratio_,masslargestremnant_mtarget_ratio_,mfrag_mfragmin_ratio_):
+    def __init__(self,target_name_,projectile_name_,time_,classification_,vimpact_vescape_ratio_,vgrazemerge_vescape_ratio_,B_Rtarg_ratio_,masslargestremnant_msum_ratio_,masslargestremnant_mtarget_ratio_,mfrag_mfragmin_ratio_,number_of_fragments_):
         self.target_name = target_name_
         self.projectile_name = projectile_name_
         self.time = time_
@@ -77,6 +77,7 @@ class collision_information:
         self.masslargestremnant_msum_ratio = masslargestremnant_msum_ratio_
         self.masslargestremnant_mtarget_ratio = masslargestremnant_mtarget_ratio_
         self.mfrag_mfragmin_ratio = mfrag_mfragmin_ratio_
+        self.number_of_fragments = number_of_fragments_
 
 
 class central_collision_information:
@@ -295,22 +296,54 @@ def collision_info_extractor(filename):
                 target_name = info[-4]
                 time = float(info[-2])
                 classification = -1
+                number_of_fragments = None
                 #Now to classify the collision
                 if info[1] == "simply" and info[2] == "merged":
                     classification = collision_type.SIMPLE_MERGER
+                    number_of_fragments = 0
                 elif info[1] == 'effectively' and info[2] == 'merged':
                     classification = collision_type.EFFECTIVE_MERGER
+                    number_of_fragments = 0
                 elif info[1] == 'head-on' and info[2] == 'smashed':
                     classification = collision_type.NONGRAZING_FRAG
                 elif info[1] == "grazed" and info[3] == "merged":
                     classification = collision_type.GRAZE_MERGER
+                    number_of_fragments = 0
                 elif info[1] == "hit" and info[3] == "run":
                     classification = collision_type.HIT_AND_RUN
                 elif info[1] == 'grazing' and info[2] == 'smashed':
                     classification = collision_type.GRAZING_FRAG
                 else:
                     raise TypeError("Don't recognize collision type" + info[1] + " " + info[2] + " " + info[3])
-                collision_info.append( collision_information(target_name,projectile_name,time,classification,vimpact_vescape_ratio,vgrazemerge_vescape_ratio,B_Rtarg_ratio,masslargestremnant_msum_ratio,masslargestremnant_mtarget_ratio,mfrag_mfragmin_ratio) )
+                #And figure out how many fragments were made
+                if number_of_fragments == None: #If we couldn't assume a fragment number from above
+                    info = f.next().split()
+                    if info[0] != "Remnant:":
+                        raise TypeError("Expected to count number of fragments, but number of fragments not recorded!")
+                    info = f.next().split()
+                    if float(info[3]) < 1e-20: #If the mass of the second remnant is zero
+                        second_mass_matters = False #Don't count this towards total number of final bodies
+                    else:
+                        second_mass_matters = True
+                    f_num = 0
+                    info=f.next().split()
+                    if info: #If list is not empty
+                        while(info[0] == "Fragment:"):
+                            f_num += 1
+                            info=f.next().split()
+                            if not info: #If list is empty
+                                break
+                    if second_mass_matters == True:
+                        number_of_fragments = f_num
+                    else:
+                        number_of_fragments = f_num - 1
+
+                    if number_of_fragments < 0: #If somehow the number is negative
+                        raise TypeError("The number of fragments is going onto record as being negative, " + str(number_of_fragments))
+
+
+
+                collision_info.append( collision_information(target_name,projectile_name,time,classification,vimpact_vescape_ratio,vgrazemerge_vescape_ratio,B_Rtarg_ratio,masslargestremnant_msum_ratio,masslargestremnant_mtarget_ratio,mfrag_mfragmin_ratio,number_of_fragments) )
             elif "collided with the central body" in line:
                 info_found = True
                 temp = line.split()
@@ -491,14 +524,22 @@ def plot_collision_scatterplot(filename="info.out",whichones=None,title=""):
     print "Number of collisions:           " + str(len(collisions))
 
     merger = []
+    effective_merger = []
+    graze_merger = []
     grow   = []
     erode  = []
     hitandrun=[]
 
     if whichones == None:
         for i in range(len(collisions)):
-            if collisions[i].classification in (collision_type.SIMPLE_MERGER, collision_type.EFFECTIVE_MERGER, collision_type.GRAZE_MERGER):
+#            if collisions[i].classification in (collision_type.SIMPLE_MERGER, collision_type.EFFECTIVE_MERGER, collision_type.GRAZE_MERGER):
+#                merger.append(collisions[i])
+            if collisions[i].classification == collision_type.SIMPLE_MERGER:
                 merger.append(collisions[i])
+            elif collisions[i].classification == collision_type.EFFECTIVE_MERGER:
+                effective_merger.append(collisions[i])
+            elif collisions[i].classification ==  collision_type.GRAZE_MERGER:
+                graze_merger.append(collisions[i])
             elif collisions[i].classification == collision_type.HIT_AND_RUN:
                 hitandrun.append(collisions[i])
             elif collisions[i].masslargestremnant_mtarget_ratio >= 1.0:
@@ -511,8 +552,14 @@ def plot_collision_scatterplot(filename="info.out",whichones=None,title=""):
     else:
         for i in range(len(collisions)):
             if collisions[i].target_name in whichones or collisions[i].projectile_name in whichones:
-                if collisions[i].classification in (collision_type.SIMPLE_MERGER, collision_type.EFFECTIVE_MERGER, collision_type.GRAZE_MERGER):
+#                if collisions[i].classification in (collision_type.SIMPLE_MERGER, collision_type.EFFECTIVE_MERGER, collision_type.GRAZE_MERGER):
+#                    merger.append(collisions[i])
+                if collisions[i].classification == collision_type.SIMPLE_MERGER:
                     merger.append(collisions[i])
+                elif collisions[i].classification == collision_type.EFFECTIVE_MERGER:
+                    effective_merger.append(collisions[i])
+                elif collisions[i].classification ==  collision_type.GRAZE_MERGER:
+                    graze_merger.append(collisions[i])
                 elif collisions[i].classification == collision_type.HIT_AND_RUN:
                     hitandrun.append(collisions[i])
                 elif collisions[i].masslargestremnant_mtarget_ratio >= 1.0:
@@ -525,8 +572,10 @@ def plot_collision_scatterplot(filename="info.out",whichones=None,title=""):
     fig = pp.figure()
 
     pp.scatter([ item.B_Rtarg_ratio for item in merger], [ item.vimpact_vescape_ratio for item in merger],marker=markers_touse[0],color=colors_touse[0],label="merger")
-    pp.scatter([ item.B_Rtarg_ratio for item in grow],  [item.vimpact_vescape_ratio for item in grow],marker=markers_touse[1],color=colors_touse[1],label="grow")
-    pp.scatter([ item.B_Rtarg_ratio for item in erode],  [item.vimpact_vescape_ratio for item in erode],marker=markers_touse[2],color=colors_touse[2],label="erode")
+    pp.scatter([ item.B_Rtarg_ratio for item in effective_merger], [ item.vimpact_vescape_ratio for item in effective_merger],marker=markers_touse[0],color="orange",label="effective merger")
+    pp.scatter([ item.B_Rtarg_ratio for item in graze_merger], [ item.vimpact_vescape_ratio for item in graze_merger],marker=markers_touse[0],color="cyan",label="grazing merger")
+    pp.scatter([ item.B_Rtarg_ratio for item in grow],  [item.vimpact_vescape_ratio for item in grow],marker=markers_touse[1],color=colors_touse[1],label="frag & grow")
+    pp.scatter([ item.B_Rtarg_ratio for item in erode],  [item.vimpact_vescape_ratio for item in erode],marker=markers_touse[2],color=colors_touse[2],label="frag & erode")
     pp.scatter([ item.B_Rtarg_ratio for item in hitandrun], [item.vimpact_vescape_ratio for item in hitandrun],marker=markers_touse[3],color=colors_touse[3],label="hit & run")
     pp.axhline(y=1,color='black',linestyle='--')
     pp.xlabel("b/R$_{\mathrm{target} }$",size=16)
