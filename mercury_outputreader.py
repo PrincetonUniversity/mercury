@@ -339,6 +339,10 @@ def collision_info_extractor(filename):
                         number_of_fragments = f_num - 1
 
                     if number_of_fragments < 0: #If somehow the number is negative
+                        print target_name
+                        print projectile_name
+                        print time
+                        print classification
                         raise TypeError("The number of fragments is going onto record as being negative, " + str(number_of_fragments))
 
 
@@ -604,7 +608,7 @@ def plot_number_func_time(filename="stdout.out"):
     as read from a specified file name.  The default file name is stdout.out,
     since it is to the stdout that the number of bodies is written 
     in the code."""
-
+    
     fig = pp.figure()
     num_func_time = numberofbodies_functime_reader(filename)
     t = []
