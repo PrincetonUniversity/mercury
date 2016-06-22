@@ -36,6 +36,7 @@ c
       parameter (G__ = 6.673d-8)
       parameter (beta = 2.85d0)
       parameter (rho_forall = 3.0d0)
+c      parameter (rho_forall = 0.1d0)
 c
 c------------------------------------------------------------------------------
 c
