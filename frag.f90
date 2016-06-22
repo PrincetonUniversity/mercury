@@ -5289,8 +5289,10 @@
 !
 ! Let us know how many bodies have been eliminated
     if (nelim > 0) then
-       write(23,*) " Number of bodies eliminated: ", nelim
-       write(23,*) " Total number of bodies before elimination: ",n
+ 11   open (23,file=outfile(3),status='old',access='append',err=11)
+      write (23,*) " Number of bodies eliminated: ", nelim
+      write (23,*) " Total number of bodies before elimination: ",n
+      close (23)
     end if
 
 ! Update total number of bodies and big bodies
