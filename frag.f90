@@ -3779,7 +3779,7 @@
     rad(1:n) = calc_radius (n,m,rho)
     rcrit(1:n) = calc_rcrit  (dt,n,m,x,v)
 !
-    do
+    big_do:do
       flag_stop = .false.
 !
 ! See if we have reached the start time for the integration
@@ -3896,11 +3896,11 @@
 
 ! If there have been multiple collisions, quit gracefully
           if (multiple_collisions == 1) then
-             call finish (n,nbig,m,x,v,s,ngf,rho,rce_hill,status,index,name)
 50           open  (23, file=outfile(3), status='old', access='append', err=50)
              write (23,'(/,a)') '   Integration quit because of multiple body collision.'
              write (*,'(a)')   '    Integration quit because of multiple body collision.'
              close (23)
+             exit big_do
           end if
 
 
@@ -3939,7 +3939,7 @@
         do k = 1, nclo
           clo(k) % i = icrit(clo(k) % i)
           clo(k) % j = icrit(clo(k) % j)
-        end do
+        end do big_do
       end if
 !------------------------------------------------------------------------------
 !  CONTINUE  THE  NORMAL  TIME  STEP
