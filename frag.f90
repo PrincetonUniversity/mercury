@@ -3939,7 +3939,7 @@
         do k = 1, nclo
           clo(k) % i = icrit(clo(k) % i)
           clo(k) % j = icrit(clo(k) % j)
-        end do big_do
+        end do
       end if
 !------------------------------------------------------------------------------
 !  CONTINUE  THE  NORMAL  TIME  STEP
@@ -3989,7 +3989,7 @@
       end if
 
 ! Go on to the next time step
-    end do
+    end do big_do
 !
     end subroutine driver_hybrid
 !==============================================================================
