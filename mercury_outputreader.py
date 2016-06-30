@@ -338,12 +338,15 @@ def collision_info_extractor(filename):
                     else:
                         number_of_fragments = f_num - 1
 
-                    if number_of_fragments < 0: #If somehow the number is negative
+                    if number_of_fragments < -1: #If somehow the number is very negative
                         print target_name
                         print projectile_name
                         print time
                         print classification
                         raise TypeError("The number of fragments is going onto record as being negative, " + str(number_of_fragments))
+
+                    if number_of_fragments == -1: #This is probably because two minimum frag mass bodies collided and merged just because they can't get smaller
+                        number_of_fragments = 0
 
 
 
@@ -554,7 +557,13 @@ def plot_collision_scatterplot(filename="info.out",whichones=None,title=""):
                 grow.append(collisions[i])
             elif collisions[i].masslargestremnant_mtarget_ratio < 1.0:
                 erode.append(collisions[i])
+            elif np.isnan(collisions[i].masslargestremnant_mtarget_ratio):
+                continue
             else:
+                print collisions[i].classification
+                print collisions[i].target_name
+                print collisions[i].projectile_name
+                print collisions[i].time
                 raise TypeError("I don't know what to do with this body, as far as its collision is concerned, body " + str(i))
 
     else:
@@ -577,6 +586,8 @@ def plot_collision_scatterplot(filename="info.out",whichones=None,title=""):
                     grow.append(collisions[i])
                 elif collisions[i].masslargestremnant_mtarget_ratio < 1.0:
                     erode.append(collisions[i])
+                elif np.isnan(collisions[i].masslargestremnant_mtarget_ratio):
+                    continue
                 else:
                     raise TypeError("I don't know what to do with this body, as far as its collision is concerned, body " + str(i))
 
