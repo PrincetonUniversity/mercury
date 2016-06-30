@@ -166,9 +166,9 @@
     end interface
 !
     interface
-      function calc_largest_remnant (mtarg,mproj,rtarg,rproj,b,v2imp)
+      function calc_largest_remnant (mtarg,mproj,rtarg,rproj,b,v2imp,rho,planet_sun_separation)
       use kinds
-      real(R8), intent(in)::mtarg,mproj,rtarg,rproj,b,v2imp
+      real(R8), intent(in)::mtarg,mproj,rtarg,rproj,b,v2imp,rho,planet_sun_separation
       real(R8)::calc_largest_remnant
       end function calc_largest_remnant
     end interface
@@ -228,6 +228,14 @@
       character(5), intent(inout)::status(:)
       end subroutine fragment_bodies
     end interface
+!
+   interface
+      function modify_qstar_roche_radius (qstar_orig, rho, planet_star_separation)
+        use kinds;   use globals
+        real(R8),      intent(in)::qstar_orig, rho, planet_star_separation
+        real(R8)::modify_qstar_roche_radius
+      end function modify_qstar_roche_radius
+   end interface
 !
     interface
       subroutine write_coll_text (t,tname,pname,text,ltext)
@@ -2644,6 +2652,7 @@
     integer(I4)::itarg,iproj
     real(R8)::xrel(3),vrel(3),xcom(3),vcom(3),rsum,msum
     real(R8)::b,v2imp,m1,m2,v2esc,v2gm,zeta,fac
+    real(R8)::planet_sun_separation
     character(25)::text
 !------------------------------------------------------------------------------
 ! Write message to info file
@@ -2674,7 +2683,8 @@
 !..impact parameter, impact velocity and mass of largest remnant
       call calc_relative_coords (m,x0,v0,itarg,iproj,xrel,vrel,xcom,vcom)
       call calc_impact_geometry (xrel,vrel,msum,rsum,b,v2imp)
-      m1 = calc_largest_remnant (m(itarg),m(iproj),rad(itarg),rad(iproj),b,v2imp)
+      planet_sun_separation = sqrt(xcom(1)*xcom(1) + xcom(2)*xcom(2) + xcom(3)*xcom(3) )
+      m1 = calc_largest_remnant (m(itarg),m(iproj),rad(itarg),rad(iproj),b,v2imp,rho(itarg),planet_sun_separation)
 !
 !..boundary between graze & merge and hit & run (Genda et al. 2012)
       zeta = ((m(itarg)  -  m(iproj)) / msum)**2
@@ -3062,15 +3072,16 @@
 ! parameter B and impact velocity squared V2IMP.
 ! The formula is taken from Leinhardt and Stewart 2011.
 !
-    function calc_largest_remnant (mtarg,mproj,rtarg,rproj,b,v2imp)
+    function calc_largest_remnant (mtarg,mproj,rtarg,rproj,b,v2imp,rho,planet_star_separation)
 !
     use constants;    use globals;    use frag_globals
-    use frag_interfaces, only: calc_qstar, calc_remnant_mass
+    use frag_interfaces, only: calc_qstar, calc_remnant_mass, &
+         modify_qstar_roche_radius
     implicit none
-    real(R8), intent(in)::mtarg,mproj,rtarg,rproj,b,v2imp
+    real(R8), intent(in)::mtarg,mproj,rtarg,rproj,b,v2imp,rho,planet_star_separation
     real(R8)::calc_largest_remnant
 !
-    real(R8)::l,alpha,msum,q,qstar
+    real(R8)::l,alpha,msum,q,qstar,temp
 !------------------------------------------------------------------------------
 ! Fraction of projectile that intersects the target
     l = rtarg  +  rproj  -  b
@@ -3085,6 +3096,9 @@
 ! Critical impact energy per unit mass
     qstar = calc_qstar (mtarg, mproj, alpha)
 !
+! Modify qstar by the Roche radius
+!    temp = modify_qstar_roche_radius(qstar, rho, planet_star_separation)
+!    qstar = temp
 ! Mass of escaping projectile
     calc_largest_remnant = calc_remnant_mass (mtarg,mproj,q,qstar)
 !
@@ -3164,7 +3178,7 @@
 !
 ! Qstar
     calc_qstar = fac * CSTAR * 0.8_R8 * PI * G * rc1 * rc1
-!
+
     end function calc_qstar
 !==============================================================================
 ! Calculates the mass of the largest remnant of a collision between a target
@@ -6998,4 +7012,22 @@
         end do
 
       end subroutine check_multiple_collisions
-              
+       
+
+!=============================================================================
+! Modifies Qstar by the Roche radius   
+!
+!
+!
+!
+      function modify_qstar_roche_radius (qstar_orig, rho, planet_star_separation)
+        use kinds;   use globals
+
+        implicit none
+        real(R8),      intent(in)::qstar_orig, rho, planet_star_separation
+        real(R8)::modify_qstar_roche_radius
+
+        ! note 15.625 is 2.5^3
+        modify_qstar_roche_radius = qstar_orig * (1 - 15.625_R8 * mcen / (rho * planet_star_separation**3))
+
+      end function modify_qstar_roche_radius
