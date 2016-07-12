@@ -2898,8 +2898,16 @@
         write (name(n)(7:8),'(i2)') nfrag
       else if (nfrag < 1000) then
         write (name(n)(6:8),'(i3)') nfrag
-      else
+      else if (nfrag < 10000) then
         write (name(n)(5:8),'(i4)') nfrag
+      else if (nfrag < 100000) then
+        write (name(n)(4:8),'(i5)') nfrag
+      else if (nfrag < 1000000) then
+        write (name(n)(3:8),'(i6)') nfrag
+      else if (nfrag < 10000000) then
+        write (name(n)(2:8),'(i7)') nfrag
+      else
+         write (*,*) "There are far too many fragments in the sim, over 1e7!"
       end if
       write (23,'(3a,es11.4)') '   Fragment: ',name(n), '  m=', m(n) / MSUN
     end do
@@ -3097,9 +3105,12 @@
     qstar = calc_qstar (mtarg, mproj, alpha)
 !
 ! Modify qstar by the Roche radius
-!    temp = modify_qstar_roche_radius(qstar, rho, planet_star_separation)
-!    qstar = temp
+    temp = modify_qstar_roche_radius(qstar, rho, planet_star_separation)
+    qstar = temp
 ! Mass of escaping projectile
+    if (qstar.lt.0.0) then
+       write(*,*) "  negative qstar: ", qstar
+    endif
     calc_largest_remnant = calc_remnant_mass (mtarg,mproj,q,qstar)
 !
     end function calc_largest_remnant
@@ -3198,7 +3209,9 @@
     msum = mtarg  +  mproj
     qratio = q / qstar
 !
-    if (qratio < 1.8_R8) then
+    if (qstar <= 0.0_R8) then !if qstar is negative, which would otherwise produce unphysical values for mlr
+      calc_remnant_mass = 0.0_R8
+    else if (qratio < 1.8_R8) then
       calc_remnant_mass = msum * (ONE  -  HALF * qratio)
     else
       fac = qratio / 1.8_R8
@@ -7021,13 +7034,23 @@
 !
 !
       function modify_qstar_roche_radius (qstar_orig, rho, planet_star_separation)
-        use kinds;   use globals
+        use kinds;   use globals;   use constants
 
         implicit none
         real(R8),      intent(in)::qstar_orig, rho, planet_star_separation
+        real(R8)::temp
         real(R8)::modify_qstar_roche_radius
 
-        ! note 15.625 is 2.5^3
-        modify_qstar_roche_radius = qstar_orig * (1 - 15.625_R8 * mcen / (rho * planet_star_separation**3))
+        ! note 11.71875 is 2.5^3 * 3/4
+        ! note 3.533 is 1.5231^3
+        temp = 1.0_R8 - 3.533_R8 * mcen / (rho * planet_star_separation**3)
+        if (temp < ZERO) then
+           write(*,*) "   qstar will be negative, temp value is: ",temp
+           write(*,*) "   sep:  ", planet_star_separation
+        end if
+
+        modify_qstar_roche_radius = qstar_orig * temp
 
       end function modify_qstar_roche_radius
+
+

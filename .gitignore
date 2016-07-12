@@ -27,3 +27,5 @@ code_pdfs
 precision.f90
 
 *.pyc
+
+.nfs*
