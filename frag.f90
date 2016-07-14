@@ -543,11 +543,13 @@
    end interface
 
    interface
-      subroutine check_multiple_collisions (hit,nhit,multiple_collisions)
+      subroutine check_multiple_collisions (hit,nhit,number_of_multiple_collisions, &
+          which_multiple_collisions)
         use kinds
-        integer(I4),     intent(out)::multiple_collisions
+        integer(I4),     intent(out)::number_of_multiple_collisions
         type(encounter), intent(in)::hit(:)
         integer(I4),     intent(in)::nhit
+        integer(I4),     intent(inout)::which_multiple_collisions(:)
       end subroutine check_multiple_collisions
    end interface
 !
@@ -2365,7 +2367,7 @@
     end do
 !
 ! Identify pairs whose x-y boxes overlap, and calculate minimum separation
-    do i = 1, nbig
+    closeencountersearch_base: do i = 1, nbig 
       do j = i + 1, n
         if (xmax(i) < xmin(j).or.xmax(j) < xmin(i).or. &
             ymax(i) < ymin(j).or.ymax(j) < ymin(i)) cycle
@@ -2437,10 +2439,11 @@
                hit(nhit) % iv(:) = tmp0 * v0(:,i)  +  tmp1 * v1(:,i)
                hit(nhit) % jx(:) = tmp0 * x0(:,j)  +  tmp1 * x1(:,j)
                hit(nhit) % jv(:) = tmp0 * v0(:,j)  +  tmp1 * v1(:,j)
-!               write(*,*) hit(nhit) % ix(:)
-!               write(*,*) hit(nhit) % iv(:)
-!               write(*,*) hit(nhit) % jx(:)
-!               write(*,*) hit(nhit) % jv(:)
+
+               !Now, don't search for any more close encounters/collisions for this body
+               !This is to prevent multiple collisions from happening, which the code 
+               !   currently can't resolve
+               cycle closeencountersearch_base
             end if
           end if
         end if
@@ -2449,7 +2452,7 @@
 !
 ! Move on to the next pair of bodies
       end do
-    end do
+    end do closeencountersearch_base
 !
 ! If encounters are not allowed, set a flag to stop the integration
     if (opt_no_encounters.and.flag) then
@@ -3778,7 +3781,8 @@
     character(8), intent(inout)::name(:)
     character(5), intent(inout)::status(:)
 !
-    integer(I4)::i,j,k,nclo,nhit,ncrit,ncrit_big,ncrit_old,multiple_collisions
+    integer(I4)::i,j,k,nclo,nhit,ncrit,ncrit_big,ncrit_old
+    integer(I4)::number_of_multiple_collisions
     real(R8)::dt,dtby2,gmcen,t,temp
     real(R8)::a(3,NMAX),rcrit(NMAX),rad(NMAX),x0(3,NMAX),v0(3,NMAX)
     type(encounter)::clo(NMAX),hit(NMAX)
@@ -3918,17 +3922,50 @@
           if (nhit > 0) call output_encounters (ncrit,ncrit_big,rhobs,statusbs, &
               indexbs,namebs,nhit,hit,m)
 !
+
+!
+!         Multiple collisions checker turned off, elsewhere in the code forces there to be no multiple collisions
+!
 ! Check that there are no multiple collisions for a single body
-          call check_multiple_collisions(hit,nhit,multiple_collisions)
+!          number_of_multiple_collisions = 0
+!          call check_multiple_collisions(hit,nhit,number_of_multiple_collisions,which_multiple_collisions)
 
 ! If there have been multiple collisions, quit gracefully
-          if (multiple_collisions == 1) then
-50           open  (23, file=outfile(3), status='old', access='append', err=50)
-             write (23,'(/,a)') '   Integration quit because of multiple body collision.'
-             write (*,'(a)')   '    Integration quit because of multiple body collision.'
-             close (23)
-             exit big_do
-          end if
+!          if (number_of_multiple_collisions >= 1) then
+!50           open  (23, file=outfile(3), status='old', access='append', err=50)
+!             write (23,'(/,a)') '   Integration quit because of multiple body collision.'
+!             write (*,'(a)')   '    Integration quit because of multiple body collision.'
+!             close (23)
+!             exit big_do
+!          end if
+
+! If there have been mutiple collisions, choose only a single collision for each body to resolve and ignore
+!  the rest of the multiple collisions
+!          if (number_of_multiple_collisions >= 1) then
+!             ! First check that there aren't collisions being removed multiple times.
+!             ! Each collision should be removed a maximum of one time
+!             num_multiple_multiple_collisions = 0
+!                         
+!             do kk_ = 1, number_of_multiple_collisions
+!                do ll_ = kk_+1, number_of_multiple_collisions
+!                   if which_multiple_collisions(kk_) == which_multiple_collisions(ll_) then
+!                       num_multiple_multiple_collisions = num_multiple_multiple_collisions + 1
+!                       multiple_multiple_collisions(num_multiple_multiple_collisions) = ll_
+
+
+                      !remove the second of the multiple collisions
+                      !decrease number_of_multiple_collisions
+
+!             do kk_ = 1, nhit
+!                body_1 = hit(kk_) % i
+!                do ll_ = kk_+1, nhit
+!                   if (body_1 == hit(ll_) % i.or.body_1 == hit(ll_) % j) then
+!                      nmoved = nmoved + 1
+!                   end if
+!                end do
+!             end do
+!             nhit = nhit - nmoved !Reduce the number of collisions appropriately
+!          end if
 
 
 ! Resolve any collisions that occurred
@@ -7003,23 +7040,25 @@
 !
 !
 !
-      subroutine check_multiple_collisions (hit,nhit,multiple_collisions)
+      subroutine check_multiple_collisions (hit,nhit,number_of_multiple_collisions,which_multiple_collisions)
         use kinds
 
         implicit none
-        integer(I4)::k,l,body_1
-        integer(I4),     intent(out)::multiple_collisions
+        integer(I4)::k,l,body_1,body_2
+        integer(I4),     intent(out)::number_of_multiple_collisions
         type(encounter), intent(in)::hit(:)
         integer(I4),     intent(in)::nhit
+        integer(I4),     intent(inout)::which_multiple_collisions(:)
 
-        multiple_collisions = 0
+        number_of_multiple_collisions = 0
         
         do k = 1, nhit
            body_1 = hit(k) % i
+           body_2 = hit(k) % j
            do l = k+1, nhit
-              if (body_1 == hit(l) % i.or.body_1 == hit(l) % j) then
-                 multiple_collisions = 1
-                 return
+              if (body_1 == hit(l) % i.or.body_1 == hit(l) % j.or.body_2 == hit(l) % i.or.body_2 == hit(l) % j) then
+                 number_of_multiple_collisions = number_of_multiple_collisions + 1
+                 which_multiple_collisions(number_of_multiple_collisions) = l !The element that has a multiple collision
               end if
            end do
         end do
