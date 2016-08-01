@@ -2915,23 +2915,23 @@
       write (23,'(3a,es11.4)') '   Fragment: ',name(n), '  m=', m(n) / MSUN
     end do
 !
-    write (23,*)
-    write (23,*) 'Initial bodies'
-    write (23,123) name(itarg), (x(1,itarg) - xcom(1)) / AU, &
-      (x(2,itarg) - xcom(2)) / AU, &
-      (x(3,itarg) - xcom(3)) / AU, &
-      (v(1,itarg) - vcom(1)) / AU * DAY, &
-      (v(2,itarg) - vcom(2)) / AU * DAY, &
-      (v(3,itarg) - vcom(3)) / AU * DAY, &
-      m(itarg) / MSUN * 1d7
-    write (23,123) name(iproj), (x(1,iproj) - xcom(1)) / AU, &
-      (x(2,iproj) - xcom(2)) / AU, &
-      (x(3,iproj) - xcom(3)) / AU, &
-      (v(1,iproj) - vcom(1)) / AU * DAY, &
-      (v(2,iproj) - vcom(2)) / AU * DAY, &
-      (v(3,iproj) - vcom(3)) / AU * DAY, &
-      m(iproj) / MSUN * 1d7
- 123 format (2x,a,2x,3(1x,f10.7),2x,3(1x,f8.6),3x,f8.4)
+!    write (23,*)
+!    write (23,*) 'Initial bodies'
+!    write (23,123) name(itarg), (x(1,itarg) - xcom(1)) / AU, &
+!      (x(2,itarg) - xcom(2)) / AU, &
+!      (x(3,itarg) - xcom(3)) / AU, &
+!      (v(1,itarg) - vcom(1)) / AU * DAY, &
+!      (v(2,itarg) - vcom(2)) / AU * DAY, &
+!      (v(3,itarg) - vcom(3)) / AU * DAY, &
+!      m(itarg) / MSUN * 1d7
+!    write (23,123) name(iproj), (x(1,iproj) - xcom(1)) / AU, &
+!      (x(2,iproj) - xcom(2)) / AU, &
+!      (x(3,iproj) - xcom(3)) / AU, &
+!      (v(1,iproj) - vcom(1)) / AU * DAY, &
+!      (v(2,iproj) - vcom(2)) / AU * DAY, &
+!      (v(3,iproj) - vcom(3)) / AU * DAY, &
+!      m(iproj) / MSUN * 1d7
+! 123 format (2x,a,2x,3(1x,f10.7),2x,3(1x,f8.6),3x,f8.4)
 !
 ! Masses and velocities of the remnant(s)
     m(itarg) = m1
@@ -2995,31 +2995,31 @@
 ! Calculate energy loss due to the collision
     denergy = denergy  +  (en0  -  en1)
 !
-    write (23,*)
-    write (23,*) 'Final bodies'
-    write (23,123) name(itarg), (x(1,itarg) - xcom(1)) / AU, &
-      (x(2,itarg) - xcom(2)) / AU, &
-      (x(3,itarg) - xcom(3)) / AU, &
-      (v(1,itarg) - vcom(1)) / AU * DAY, &
-      (v(2,itarg) - vcom(2)) / AU * DAY, &
-      (v(3,itarg) - vcom(3)) / AU * DAY, &
-      m(itarg) / MSUN * 1d7
-    write (23,123) name(iproj), (x(1,iproj) - xcom(1)) / AU, &
-      (x(2,iproj) - xcom(2)) / AU, &
-      (x(3,iproj) - xcom(3)) / AU, &
-      (v(1,iproj) - vcom(1)) / AU * DAY, &
-      (v(2,iproj) - vcom(2)) / AU * DAY, &
-      (v(3,iproj) - vcom(3)) / AU * DAY, &
-      m(iproj) / MSUN * 1d7
-    do ifrag = nold + 1, nold + nnew
-      write (23,123) name(ifrag), (x(1,ifrag) - xcom(1)) / AU, &
-        (x(2,ifrag) - xcom(2)) / AU, &
-        (x(3,ifrag) - xcom(3)) / AU, &
-        (v(1,ifrag) - vcom(1)) / AU * DAY, &
-        (v(2,ifrag) - vcom(2)) / AU * DAY, &
-        (v(3,ifrag) - vcom(3)) / AU * DAY, &
-        m(ifrag) / MSUN * 1d7
-    end do
+!    write (23,*)
+!    write (23,*) 'Final bodies'
+!    write (23,123) name(itarg), (x(1,itarg) - xcom(1)) / AU, &
+!      (x(2,itarg) - xcom(2)) / AU, &
+!      (x(3,itarg) - xcom(3)) / AU, &
+!      (v(1,itarg) - vcom(1)) / AU * DAY, &
+!      (v(2,itarg) - vcom(2)) / AU * DAY, &
+!      (v(3,itarg) - vcom(3)) / AU * DAY, &
+!      m(itarg) / MSUN * 1d7
+!    write (23,123) name(iproj), (x(1,iproj) - xcom(1)) / AU, &
+!      (x(2,iproj) - xcom(2)) / AU, &
+!      (x(3,iproj) - xcom(3)) / AU, &
+!      (v(1,iproj) - vcom(1)) / AU * DAY, &
+!      (v(2,iproj) - vcom(2)) / AU * DAY, &
+!      (v(3,iproj) - vcom(3)) / AU * DAY, &
+!      m(iproj) / MSUN * 1d7
+!    do ifrag = nold + 1, nold + nnew
+!      write (23,123) name(ifrag), (x(1,ifrag) - xcom(1)) / AU, &
+!        (x(2,ifrag) - xcom(2)) / AU, &
+!        (x(3,ifrag) - xcom(3)) / AU, &
+!        (v(1,ifrag) - vcom(1)) / AU * DAY, &
+!        (v(2,ifrag) - vcom(2)) / AU * DAY, &
+!        (v(3,ifrag) - vcom(3)) / AU * DAY, &
+!        m(ifrag) / MSUN * 1d7
+!    end do
 !
 ! Add entries in the list of particle pairs within critical distance
     if (nnew > 0) write (23,*)
@@ -3028,20 +3028,20 @@
       npair = npair  +  1
       ipair(npair) = itarg
       jpair(npair) = ifrag
-      write (23,*) '    New Pair: ',name(ipair(npair)),'  ',name(jpair(npair))
+      !write (23,*) '    New Pair: ',name(ipair(npair)),'  ',name(jpair(npair))
 !
       if (m2 /= ZERO) then
         npair = npair  +  1
         ipair(npair) = iproj
         jpair(npair) = ifrag
-        write (23,*) '    New Pair: ',name(ipair(npair)),'  ',name(jpair(npair))
+        !write (23,*) '    New Pair: ',name(ipair(npair)),'  ',name(jpair(npair))
       end if
 !
       do jfrag = nold + 1, ifrag - 1
         npair = npair  +  1
         ipair(npair) = ifrag
         jpair(npair) = jfrag
-        write (23,*) '    New Pair: ',name(ipair(npair)),'  ',name(jpair(npair))
+        !write (23,*) '    New Pair: ',name(ipair(npair)),'  ',name(jpair(npair))
       end do
     end do
 !
@@ -5354,8 +5354,8 @@
 ! Let us know how many bodies have been eliminated
     if (nelim > 0) then
  11   open (23,file=outfile(3),status='old',access='append',err=11)
-      write (23,*) " Number of bodies eliminated: ", nelim
-      write (23,*) " Total number of bodies before elimination: ",n
+!      write (23,*) " Number of bodies eliminated: ", nelim
+!      write (23,*) " Total number of bodies before elimination: ",n
       close (23)
     end if
 
