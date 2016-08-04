@@ -63,14 +63,15 @@ class collision_type:
     NONGRAZING_FRAG = 3   #if non-grazing and fragments
     GRAZE_MERGER = 4  #if grazing regime and impact velocity less than v2gm
     HIT_AND_RUN = 5   #if grazing regime and largest fragment larger than target mass
-    GRAZING_FRAG = 6  #if grazing regime and fragmentstime
+    GRAZING_FRAG = 6  #if grazing regime and fragments
 
 class collision_information:
-    def __init__(self,target_name_,projectile_name_,time_,classification_,vimpact_vescape_ratio_,vgrazemerge_vescape_ratio_,B_Rtarg_ratio_,masslargestremnant_msum_ratio_,masslargestremnant_mtarget_ratio_,mfrag_mfragmin_ratio_,number_of_fragments_):
+    def __init__(self,target_name_,projectile_name_,time_,classification_,mt_over_mp_,vimpact_vescape_ratio_,vgrazemerge_vescape_ratio_,B_Rtarg_ratio_,masslargestremnant_msum_ratio_,masslargestremnant_mtarget_ratio_,mfrag_mfragmin_ratio_,number_of_fragments_):
         self.target_name = target_name_
         self.projectile_name = projectile_name_
         self.time = time_
         self.classification = classification_
+        self.mt_over_mp = mt_over_mp_
         self.vimpact_vescape_ratio = vimpact_vescape_ratio_
         self.vgrazemerge_vescape_ratio = vgrazemerge_vescape_ratio_
         self.B_Rtarg_ratio = B_Rtarg_ratio_
@@ -104,13 +105,19 @@ class numberofbodies_functime:
         self.numberbodies = number_
 
 
-def aei_aggregator(path_="./"):
+def aei_aggregator(path_="./",just_original_bodies=False):
     """This reads in all the *.aei files in the given path
     and returns a tuple, the first element of which is the names of all the bodies
-    and the second element of which is a list of aei_info instances"""
+    and the second element of which is a list of aei_info instances.
+    If you only want to aggregate the original bodies, and none of the fragments,
+    set just_original_bodies=True"""
     if not isinstance(path_, str):
         raise TypeError("The given path is not a string!")
     filelist, body_names = get_files("aei",path=path_)
+    if just_original_bodies == True:
+        #filelist = [item in filelist if 'F' not in item]
+        filelist[:], body_names[:] = zip(*((x, y) for (x, y) in zip(filelist, body_names) if 'F' not in x))
+        
     
     files_with_no_info = 0
     aei_list = []
@@ -146,7 +153,7 @@ def aei_file_reader(filename,bodyname="blank"):
 def aei_func_time(aei_info_list):
     """This function takes a list of aei_info objects and returns,
     as a function of time, the aei's of all objects at the corresponding time.
-    Returnts a tuple: list of time, list of aei_info objects, and list of number of objects"""
+    Returnts a tuple: list of time, list of aei_singletime objects, and list of number of objects"""
     if not isinstance(aei_info_list,list):
         raise TypeError("Umm, this isn't even a list.  I don't know what to do with this")
     if not isinstance(aei_info_list[0],aei_info):
@@ -350,7 +357,7 @@ def collision_info_extractor(filename):
 
 
 
-                collision_info.append( collision_information(target_name,projectile_name,time,classification,vimpact_vescape_ratio,vgrazemerge_vescape_ratio,B_Rtarg_ratio,masslargestremnant_msum_ratio,masslargestremnant_mtarget_ratio,mfrag_mfragmin_ratio,number_of_fragments) )
+                collision_info.append( collision_information(target_name,projectile_name,time,classification,mass_ratio,vimpact_vescape_ratio,vgrazemerge_vescape_ratio,B_Rtarg_ratio,masslargestremnant_msum_ratio,masslargestremnant_mtarget_ratio,mfrag_mfragmin_ratio,number_of_fragments) )
             elif "collided with the central body" in line:
                 info_found = True
                 temp = line.split()
@@ -517,14 +524,19 @@ def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parame
   
     return fig
 
-def plot_collision_scatterplot(filename="info.out",whichones=None,title=""):              
+def plot_collision_scatterplot(filename="info.out",whichones=None,title="",collision_info=None):              
     """This function will take a info.out file and plot up a scatter plot of all the
     collisions in the v/vesc and r/R_target plane.  It returns this figure."""
 
     markers_touse = ("o","^","s","D")
     colors_touse = ( (146./255.,0,0),(0,109./255.,219./255.),(36./255.,255./255.,36./255.),(219./255.,209./255.,0))
 
-    collisions, central_collisions, ejections = collision_info_extractor(filename)
+    if collision_info == None:
+        collisions, central_collisions, ejections = collision_info_extractor(filename)
+    else:
+        collisions = collision_info[0]
+        central_collisions = collision_info[1]
+        ejections = collision_info[2]
     print "Number of central collisions:   " + str(len(central_collisions))
     print "Number of ejections:            " + str(len(ejections))
     print " "
@@ -649,8 +661,14 @@ def plot_number_func_time(filename="stdout.out"):
     return fig
 
 
-def plot_all_aeis_here(times=(0.,3e6,10e6,30e6,60e6,300e6),a_limits=None):
-    names, aei_functime = aei_aggregator()    
+def plot_all_aeis_here(times=(0.,3e6,10e6,30e6,60e6,300e6),a_limits=None,names_and_aeifunctime=None,just_original_bodies=False):
+    if names_and_aeifunctime == None:
+        names, aei_functime = aei_aggregator()
+    else:
+        if len(names_and_aeifunctime) != 2:
+            raise TypeError("names_and_aeifunctime was not length 2!")
+        names = names_and_aeifunctime[0]
+        aei_functime = names_and_aeifunctime[1]
     times_aei_output, aeis, numbers = aei_func_time(aei_functime)
 
     fig = plot_aei_multiple(times,times_aei_output,aeis,'e','a',number_of_digits_to_round_to=2,xlimits=a_limits)
@@ -698,3 +716,106 @@ if __name__ == '__main__':
 
     fig = plot_aei_multiple((0.,3e6,10e6,30e6,60e6,299e6),times,aeis,'e','a',number_of_digits_to_round_to=2)
     fig.savefig("tempfig.pdf")
+
+
+
+
+
+
+
+
+
+
+##########################################################
+##########################################################
+##########################################################
+##########################################################
+####   Added later
+
+def plot_collisions_mtovermp_func_time(collisions,whichonestofocus=None):
+    """ This function will take a list of collision_information instances
+    (optional list of names of bodies to highlight in the plot) 
+    then plots mt over mp on the y-axis, logarithm time
+    on the x-axis, and highlights the collisions of the objects that
+    made it to the end,
+    and returns a figure that can then be saved.
+    """
+
+    if not isinstance(collisions[0],collision_information):
+        raise TypeError("You did not give this function a list of collision_information instances!")
+
+    fig = pp.figure()
+
+    point_size = 12
+    times = []
+    mt_over_mp = []
+    for i in range(len(collisions)):
+        times.append(collisions[i].time)
+        mt_over_mp.append(collisions[i].mt_over_mp)
+
+    pp.scatter(times,mt_over_mp,s=point_size,facecolor='none') #all of them
+
+    #Now, just the final bodies
+    if whichonestofocus != None:
+        times = []
+        mt_over_mp = []
+        for i in range(len(collisions)):
+            if (collisions[i].target_name in whichonestofocus) or (collisions[i].projectile_name in whichonestofocus):
+                times.append(collisions[i].time)
+                mt_over_mp.append(collisions[i].mt_over_mp)
+
+        pp.scatter(times,mt_over_mp,color='blue',s=point_size)
+    
+    pp.xscale(u'log')
+    pp.xlabel("Time (years)")
+    pp.ylabel("Ratio of collider masses")
+    pp.ylim(-.01,2.05)
+
+    return fig
+
+
+def calc_average_mtovermp(collisions,whichonestofocus):
+    """This function will calculate the average mt_over_mp for 
+    all collisions in collisions, as well as calculate the average
+    mt_over_mp for the bodies listed in whichonestofocus
+    """
+
+    mt_over_mp_list = []
+    target_name_list = []
+    projectile_name_list = []
+    for i in range(len(collisions)):
+        mt_over_mp_list.append(collisions[i].mt_over_mp)
+        target_name_list.append(collisions[i].target_name)
+        projectile_name_list.append(collisions[i].projectile_name)
+
+
+    if not mt_over_mp_list:
+        mean = 0
+        median = 0
+        stddev = 0
+    else:
+        mean = np.mean(mt_over_mp_list)
+        median = np.median(mt_over_mp_list)
+        stddev = np.std(mt_over_mp_list)
+
+
+    focused_list = []
+
+    for i in range(len(whichonestofocus)):
+        temp = whichonestofocus[i]
+        mt_over_mp_thisone = []
+        for j in range(len(collisions)):
+            if (temp == target_name_list[j]) or (temp == projectile_name_list[j]):
+                mt_over_mp_thisone.append(collisions[j].mt_over_mp)
+
+
+        if not mt_over_mp_thisone:
+            focused_list.append ( [0,0,0] )
+        else:
+            focused_list.append( [np.mean(mt_over_mp_thisone),np.median(mt_over_mp_thisone),np.std(mt_over_mp_thisone)] )
+
+
+
+
+
+    return ([mean,median,stddev],focused_list)
