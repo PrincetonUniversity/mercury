@@ -392,7 +392,7 @@ def mass_to_pointsize_converter(mass,scale=100):
     return temp
 
 
-def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parameter_2,round_time=True,number_of_digits_to_round_to=1,year_unit="Myr",ylimits=None,xlimits=None):
+def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parameter_2,round_time=True,number_of_digits_to_round_to=3,max_number_of_decimals=3,year_unit="Myr",ylimits=None,xlimits=None):
     """This will plot a bunch of aei info similar to what John Chambers
     does.  time_values_to_use shows the time values that you want to plot
     at (the closest ones will be chosen)
@@ -498,14 +498,41 @@ def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parame
         if abs(time_values_to_use[i] - 0.0) <= 1e-9:
             text = "Start"
         else: #round_time=False,number_of_digits_to_round_to=1,
-            if round_time == True:
+            if round_time == True
                 time = time_values_to_use[i]
-                order_of_magnitude = (np.log10(int(time_values_to_use[i])))
-                taken_to_the_bottom = time / 10**(int(order_of_magnitude)+1)
-                time = round(taken_to_the_bottom,number_of_digits_to_round_to)
-                time = time * (10**(int(order_of_magnitude)+1)/year_unit_dict[year_unit])
-                if time % 1 <= 1.e-3: #If the error introduced by multiplying this back up is small
-                    time = round(time)
+
+                time = time/year_unit_dict[year_unit]
+
+
+                time_temp = time * 10**max_number_of_decimals
+                time_temp = round(time_temp)
+                time_temp = time_temp  * 10**(-max_number_of_decimals) #Now, the number of decimal places is properly truncated, and the final value rounded.
+
+                #print time_temp
+                if abs(time_temp)<=1e-7:
+                    time_temp_2 = 0.0
+                else:
+                    time_temp_2 = round(time_temp, -int(math.floor(np.log10(time_temp))) + (number_of_digits_to_round_to - 1))
+
+                    if (number_of_digits_to_round_to - int(np.log10(time_temp_2)) + 1) == (max_number_of_decimals - 1) and max_number_of_decimals >= 1: #May need to adjust some things
+                        super_temp = time * 10**(max_number_of_decimals - 2)
+                        super_temp = int(  (super_temp - int(super_temp))*10)
+                        super_temp_2 = time_temp * 10**(max_number_of_decimals - 2)
+                        super_temp_2 = int(  (super_temp_2 - int(super_temp_2))*10)
+                        if super_temp == 4 and super_temp_2 == 5:
+                            print "Premature rounding affected things that will show up in time values, now taking care of"
+
+                            time_temp_2 = time_temp_2 - 10**(-(max_number_of_decimals - 1))
+                if time_temp_2 == 0.0:
+                    if number_of_digits_to_round_to == 1:
+                        time_temp_2 = int(time_temp_2)
+                else:
+                    if np.log10(time_temp_2) >= number_of_digits_to_round_to:
+                        time_temp_2 = int(time_temp_2)
+
+                time = time_temp_2
+
+                
             else:
                 time = time_values_to_use[i]/year_unit_dict[year_unit]
 
@@ -671,7 +698,7 @@ def plot_all_aeis_here(times=(0.,3e6,10e6,30e6,60e6,300e6),a_limits=None,names_a
         aei_functime = names_and_aeifunctime[1]
     times_aei_output, aeis, numbers = aei_func_time(aei_functime)
 
-    fig = plot_aei_multiple(times,times_aei_output,aeis,'e','a',number_of_digits_to_round_to=2,xlimits=a_limits,ylimits=(0,0.05),year_unit=year_unit)
+    fig = plot_aei_multiple(times,times_aei_output,aeis,'e','a',number_of_digits_to_round_to=3,max_number_of_decimals=3,xlimits=a_limits,ylimits=(0,0.05),year_unit=year_unit)
     fig.savefig("e_vs_a.pdf")
 
     #fig = plot_aei_multiple(times,times_aei_output,aeis,'i','a',number_of_digits_to_round_to=2,ylimits=(0,45),year_unit=year_unit,xlimits=a_limits)
