@@ -407,7 +407,7 @@ def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parame
     param_name_dict = {'e':"Eccentricity", 'a':"Semi-Major Axis", 'i':"Inclination", 'mass':"Mass"}
     param_unit_dict = {'e':"", 'a':" (AU)", 'i':" (degrees)", 'mass':" (Mass Units)"}
     param_limit_dict= {'e':(0,1),'a':(.2,2.6),'i':(0,90),'mass':(0,2e-5)}
-    year_unit_dict  = {"Myr":1.e6}
+    year_unit_dict  = {"Myr":1.e6,"kyr":1.e3}
 
     if not ( (parameter_1 in param_name_dict) and (parameter_2 in param_name_dict) ):
         raise TypeError("I can't recognize at least one of the two parameters given to me, " + parameter_1 + "  " + parameter_2)
@@ -661,7 +661,7 @@ def plot_number_func_time(filename="stdout.out"):
     return fig
 
 
-def plot_all_aeis_here(times=(0.,3e6,10e6,30e6,60e6,300e6),a_limits=None,names_and_aeifunctime=None,just_original_bodies=False):
+def plot_all_aeis_here(times=(0.,3e6,10e6,30e6,60e6,300e6),a_limits=None,names_and_aeifunctime=None,just_original_bodies=False,year_unit='kyr'):
     if names_and_aeifunctime == None:
         names, aei_functime = aei_aggregator()
     else:
@@ -671,22 +671,22 @@ def plot_all_aeis_here(times=(0.,3e6,10e6,30e6,60e6,300e6),a_limits=None,names_a
         aei_functime = names_and_aeifunctime[1]
     times_aei_output, aeis, numbers = aei_func_time(aei_functime)
 
-    fig = plot_aei_multiple(times,times_aei_output,aeis,'e','a',number_of_digits_to_round_to=2,xlimits=a_limits)
+    fig = plot_aei_multiple(times,times_aei_output,aeis,'e','a',number_of_digits_to_round_to=2,xlimits=a_limits,ylimits=(0,0.05),year_unit=year_unit)
     fig.savefig("e_vs_a.pdf")
 
-    fig = plot_aei_multiple(times,times_aei_output,aeis,'i','a',number_of_digits_to_round_to=2,ylimits=(0,45),xlimits=a_limits)
-    fig.savefig("i_vs_a.pdf")
+    #fig = plot_aei_multiple(times,times_aei_output,aeis,'i','a',number_of_digits_to_round_to=2,ylimits=(0,45),year_unit=year_unit,xlimits=a_limits)
+    #fig.savefig("i_vs_a.pdf")
 
-    fig = plot_aei_multiple(times,times_aei_output,aeis,'mass','a',number_of_digits_to_round_to=2,xlimits=a_limits)
-    fig.savefig("mass_vs_a.pdf")
+    #fig = plot_aei_multiple(times,times_aei_output,aeis,'mass','a',number_of_digits_to_round_to=2,year_unit=year_unit,xlimits=a_limits)
+    #fig.savefig("mass_vs_a.pdf")
 
-    fig = plot_aei_multiple(times,times_aei_output,aeis,'e','i',number_of_digits_to_round_to=2,xlimits=(0,45))
-    fig.savefig("e_vs_i.pdf")
+    #fig = plot_aei_multiple(times,times_aei_output,aeis,'e','i',number_of_digits_to_round_to=2,year_unit=year_unit,xlimits=(0,45))
+    #fig.savefig("e_vs_i.pdf")
 
 
 
-if __name__ == '__main__':
-    """temp, tempcentral, tempejection = collision_info_extractor("info.out")
+"""if __name__ == '__main__':
+    ""temp, tempcentral, tempejection = collision_info_extractor("info.out")
     print temp
 
     temp, tempcentral, tempejection = collision_info_extractor("info.2.out")
@@ -703,7 +703,7 @@ if __name__ == '__main__':
     #################
 
     temp = get_files("aei")
-    print temp"""
+    print temp""
 
     names, aei_functime = aei_aggregator()
     
@@ -714,9 +714,9 @@ if __name__ == '__main__':
     print "     "
     print "     "
 
-    fig = plot_aei_multiple((0.,3e6,10e6,30e6,60e6,299e6),times,aeis,'e','a',number_of_digits_to_round_to=2)
+    fig = plot_aei_multiple((0.,3e6,10e6,30e6,60e6,299e6),times,aeis,'e','a',number_of_digits_to_round_to=2,year_unit=year_unit)
     fig.savefig("tempfig.pdf")
-
+"""
 
 
 

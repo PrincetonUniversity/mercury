@@ -14,6 +14,8 @@ mercury7
 mercury7_nocondor
 mercury7_roche
 mercury7_roche_nocondor
+mercury7_noroche
+mercury7_noroche_nocondor
 mercury7_rho0p1
 mercury7_rho0p1_nocondor
 close6

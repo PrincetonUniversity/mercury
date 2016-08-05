@@ -6,6 +6,7 @@
 #AGBTG
 
 import numpy as np
+import matplotlib.pyplot as pp
 import collections
 
 import mercury_outputreader as outputreader
@@ -59,3 +60,31 @@ def mutual_hill_radii_checker(planets,central_object_mass=1.):
         output.append(delta_a/mutual_hill_radius)
 
     return output
+
+
+def plot_mutual_hill_radii(planets,central_object_mass=1.):
+    """This will calculate the mutual hill radii of the final planets 
+    (which are handed as an aei_info object) and compare to 
+    their separations.  The central object mass is an optional parameter
+    with default value of 1 in solar masses.  This information is then 
+    plotted and the function returns a figure
+    """
+
+    if not isinstance(planets,outputreader.aei_singletime):
+        raise TypeError("plot_mutual_hill_radii was not given an aei_singletime instance!")
+
+    fig = pp.figure()
+
+    stuff = mutual_hill_radii_checker(planets)
+
+    a_list = []
+    for i in range(len(planets.a)-1): #This will allow us to plot separation as a function of position
+        a_list.append( (planets.a[i] + planets.a[i+1])/2.0)
+
+    pp.scatter(a_list,stuff)
+    pp.xlabel("Semi-major axis (AU), defined to be between the planets")
+    pp.ylabel("Separation / mutual Hill radii")
+    pp.ylim(bottom=0)
+    pp.xlim(left=0)
+
+    return fig
