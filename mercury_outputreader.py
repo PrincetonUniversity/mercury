@@ -6,6 +6,7 @@
 
 import glob
 import numpy as np
+import math
 import matplotlib.pyplot as pp
 #import matplotlib 
 #print matplotlib.__version__
@@ -498,7 +499,7 @@ def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parame
         if abs(time_values_to_use[i] - 0.0) <= 1e-9:
             text = "Start"
         else: #round_time=False,number_of_digits_to_round_to=1,
-            if round_time == True
+            if round_time == True:
                 time = time_values_to_use[i]
 
                 time = time/year_unit_dict[year_unit]
