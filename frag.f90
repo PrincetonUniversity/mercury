@@ -2344,7 +2344,7 @@
     type(encounter), intent(inout)::clo(:),hit(:)
 !
     real(R8)::dx0(3),dv0(3),dx1(3),dv1(3),rce(NMAX)
-    integer(I4)::i,j,itarg,iproj,nclo,nhit,year1,month1
+    integer(I4)::i,j,lll,itarg,iproj,nclo,nhit,year1,month1
     real(R8)::xmin(NMAX),xmax(NMAX),ymin(NMAX),ymax(NMAX)
     real(R8)::d0,d1,d0t,d1t,tmp0,tmp1,d2min,d2ce,d2hit,temp,tmin,t1
     logical::flag
@@ -2428,6 +2428,13 @@
             clo(nclo) % jv(:) = tmp0 * v0(:,j)  +  tmp1 * v1(:,j)
             ! Store details of any collisions
             if (d2min <= d2hit) then
+               !First, search through all previous collisions to make sure 
+               do lll = 1, nhit
+                   if ( (hit(lll) % i == itarg).or.(hit(lll) % j == itarg ).or. &
+                        ( hit(lll) % i == iproj ).or. (hit(lll) % j == iproj) ) then
+                      cycle closeencountersearch_base
+                   end if
+               end do
                nhit = nhit  +  1
                hit(nhit) % i = itarg
                hit(nhit) % j = iproj
