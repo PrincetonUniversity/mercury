@@ -689,7 +689,7 @@ def plot_number_func_time(filename="stdout.out"):
     return fig
 
 
-def plot_all_aeis_here(times=(0.,3e6,10e6,30e6,60e6,300e6),a_limits=None,names_and_aeifunctime=None,just_original_bodies=False,year_unit='kyr'):
+def plot_all_aeis_here(times=(0.,3e6,10e6,30e6,60e6,300e6),a_limits=None,e_limits=None,names_and_aeifunctime=None,just_original_bodies=False,year_unit='kyr'):
     if names_and_aeifunctime == None:
         names, aei_functime = aei_aggregator()
     else:
@@ -697,9 +697,12 @@ def plot_all_aeis_here(times=(0.,3e6,10e6,30e6,60e6,300e6),a_limits=None,names_a
             raise TypeError("names_and_aeifunctime was not length 2!")
         names = names_and_aeifunctime[0]
         aei_functime = names_and_aeifunctime[1]
+
+    if e_limits==None:
+        e_limits=(0,0.05)
     times_aei_output, aeis, numbers = aei_func_time(aei_functime)
 
-    fig = plot_aei_multiple(times,times_aei_output,aeis,'e','a',number_of_digits_to_round_to=3,max_number_of_decimals=3,xlimits=a_limits,ylimits=(0,0.05),year_unit=year_unit)
+    fig = plot_aei_multiple(times,times_aei_output,aeis,'e','a',number_of_digits_to_round_to=3,max_number_of_decimals=3,xlimits=a_limits,ylimits=e_limits,year_unit=year_unit)
     fig.savefig("e_vs_a.pdf")
 
     #fig = plot_aei_multiple(times,times_aei_output,aeis,'i','a',number_of_digits_to_round_to=2,ylimits=(0,45),year_unit=year_unit,xlimits=a_limits)
@@ -708,7 +711,7 @@ def plot_all_aeis_here(times=(0.,3e6,10e6,30e6,60e6,300e6),a_limits=None,names_a
     #fig = plot_aei_multiple(times,times_aei_output,aeis,'mass','a',number_of_digits_to_round_to=2,year_unit=year_unit,xlimits=a_limits)
     #fig.savefig("mass_vs_a.pdf")
 
-    #fig = plot_aei_multiple(times,times_aei_output,aeis,'e','i',number_of_digits_to_round_to=2,year_unit=year_unit,xlimits=(0,45))
+    #fig = plot_aei_multiple(times,times_aei_output,aeis,'e','i',number_of_digits_to_round_to=2,year_unit=year_unit,xlimits=(0,45),ylimits=e_limits)
     #fig.savefig("e_vs_i.pdf")
 
 

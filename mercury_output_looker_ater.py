@@ -35,6 +35,7 @@ def mutual_hill_radii_checker(planets,central_object_mass=1.):
     if not isinstance(planets.a,collections.Sequence):
         raise TypeError("The thing passed to me doesn't have more than one object in it.")
 
+    print "  received " + str(len(planets.a)) + " planets"
 
     #Check that objects are in order
     if not in_order(planets.a):
@@ -44,9 +45,11 @@ def mutual_hill_radii_checker(planets,central_object_mass=1.):
 
         aes = map(planets.a.__getitem__, indexes)
         masses = map(planets.mass.__getitem__, indexes)
+        ees    = map(planets.e.__getitem__, indexes)
 
         print aes
         print masses
+        print ees
 
     else:
         aes = planets.a
@@ -55,6 +58,7 @@ def mutual_hill_radii_checker(planets,central_object_mass=1.):
     output = []
 
     for i in range(len(planets.a)-1):
+        print i
         delta_a = aes[i+1] - aes[i]
         mutual_hill_radius = 0.5 * (aes[i+1] + aes[i]) * np.power( (masses[i+1] + masses[i])/ (3.0*central_object_mass) , 1./3.)
         output.append(delta_a/mutual_hill_radius)
