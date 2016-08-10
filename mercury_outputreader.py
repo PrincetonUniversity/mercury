@@ -160,24 +160,9 @@ def aei_func_time(aei_info_list):
     if not isinstance(aei_info_list[0],aei_info):
         raise TypeError("This list doesn't contain aei_info instances, at least not the first element")
 
-    i_with_maxlength = None
-    maxlength = 0
-    for i in range(len(aei_info_list)):
-        temp = len(aei_info_list[i].time)
-        if temp > maxlength:
-            i_with_maxlength = i
-            maxlength = temp
 
-    print "Index of body with max length: " + str(i_with_maxlength)
-            
-    number_of_bodies_withmaxlength = 0
-    for i in range(len(aei_info_list)):
-        if len(aei_info_list[i].time) == maxlength:
-             number_of_bodies_withmaxlength += 1
-             if not np.array_equal(aei_info_list[i].time , aei_info_list[i_with_maxlength].time):
-                 raise TypeError("There are two same-lengthed time arrays with differing values")
+    i_with_maxlength = final_body_determiner(aei_info_list)
 
-    print "Number of bodies with same time array as max length: " + str(number_of_bodies_withmaxlength)
 
     time_list = aei_info_list[i_with_maxlength].time
     aei_list_full = []
@@ -215,6 +200,55 @@ def aei_func_time(aei_info_list):
 #    return toreturn
 
 #Problem I see: Object column won't be a number in general, need to save as string
+
+
+def final_body_determiner(aei_info_list,I_want_list_of_final_body_indices=False):
+    """This will look at a list of aei_info instances, determine which
+    objects lasted the whole integration time and also determine
+    which objects are present at the end.
+    Replaces some of the code that was in aei_func_time so it can now be used
+    more generally.
+    I_want_list_of_final_body_indices indicates whether one would like
+    this function to also return a list of indices of bodies at the end
+    Returns a tuple, first element is the index of the array with the max length
+    and the second element is a list of the 
+    """
+
+    i_with_maxlength = None
+    maxlength = 0
+    for i in range(len(aei_info_list)):
+        temp = len(aei_info_list[i].time)
+        if temp > maxlength:
+            i_with_maxlength = i
+            maxlength = temp
+
+    print "Index of body with max length: " + str(i_with_maxlength)
+            
+    number_of_bodies_withmaxlength = 0
+    for i in range(len(aei_info_list)):
+        if len(aei_info_list[i].time) == maxlength:
+             number_of_bodies_withmaxlength += 1
+             if not np.array_equal(aei_info_list[i].time , aei_info_list[i_with_maxlength].time):
+                 raise TypeError("There are two same-lengthed time arrays with differing values")
+
+    print "Number of bodies with same time array as max length: " + str(number_of_bodies_withmaxlength)
+
+    if I_want_list_of_final_body_indices == False:
+        return i_with_maxlength
+
+    elif I_want_list_of_final_body_indices == True:
+
+        final_body_indices = []
+        temp = aei_info_list[i_with_maxlength].time[-1]
+        for i in range(len(aei_info_list)):
+            if aei_info_list[i].time[-1] == temp: #If has as last time the time of a body that lasted the whole time
+                final_body_indices.append(i)
+
+        print "Number of final bodies: " + str(len(final_body_indices))
+
+
+        return (i_with_maxlength,final_body_indices)
+
 
 
 def get_files(extension,path="./"):
