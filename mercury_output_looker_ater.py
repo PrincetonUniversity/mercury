@@ -95,7 +95,7 @@ def plot_mutual_hill_radii(planets,central_object_mass=1.):
 
 
 
-def plot_a_func_time(aes, times, which_are_final_bodies=None,year_unit='kyr'):
+def plot_a_func_time(aes, times, which_are_final_bodies=None,year_unit='kyr',title=None):
     """This function takes a list of each individual body's semimajor axes,
     which itself can be stored as a list, as well as a list of lists of the 
     times corresponding to semimajor axes passed with the first argument
@@ -116,6 +116,9 @@ def plot_a_func_time(aes, times, which_are_final_bodies=None,year_unit='kyr'):
             pp.plot(np.divide(times[which_are_final_bodies[i]],year_unit_dict[year_unit]),aes[which_are_final_bodies[i]],color='red')#,color='blue',linewidth=1.5)
 
     pp.xscale(u'log')
+    
+    if title != None:
+        pp.title(title)
 
     pp.xlabel("Time ("+year_unit+")")
     pp.ylabel("Semimajor axis (AU)")
