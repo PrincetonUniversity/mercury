@@ -113,6 +113,7 @@ def plot_a_func_time(aes, times, which_are_final_bodies=None,year_unit='kyr',tit
 
     if which_are_final_bodies != None:
         for i in range(len(which_are_final_bodies)):
+            #print "   final body plotting as red: " + str(i)
             pp.plot(np.divide(times[which_are_final_bodies[i]],year_unit_dict[year_unit]),aes[which_are_final_bodies[i]],color='red')#,color='blue',linewidth=1.5)
 
     pp.xscale(u'log')
