@@ -105,6 +105,12 @@ class numberofbodies_functime:
         self.time = time_
         self.numberbodies = number_
 
+class numberofbodies_outsideroche_functime:
+    def __init__(self,time_,number_inside_roche_,number_outside_roche_):
+        self.time = time_
+        self.number_inside_roche = number_inside_roche_
+        self.number_outside_roche = number_outside_roche_
+
 
 def aei_aggregator(path_="./",just_original_bodies=False):
     """This reads in all the *.aei files in the given path
@@ -275,16 +281,20 @@ def numberofbodies_functime_reader(filename):
     instances of the numberofbodies_functime class"""
     f = open(filename, 'r')
     toreturn = []
+    toreturn_split_over_roche = []
     for line in f:
-        if line[0:21] != " Number of big bodies":
-            continue
-        temp = line.split()
-        if len(temp) !=10:
-            raise TypeError("The number of bodies line doesn't have the right number of words/numbers")
-        toreturn.append( numberofbodies_functime(float(temp[6]),int(temp[9])) )
-
+        if line[0:21] == " Number of big bodies":
+            temp = line.split()
+            if len(temp) != 10:
+                raise TypeError("The number of bodies line doesn't have the right number of words/numbers")
+            toreturn.append( numberofbodies_functime(float(temp[6]),int(temp[9])) )
+        elif line[0:25] == " Num. bodies inside Roche":
+            temp = line.split()
+            if len(temp) != 14:
+                raise TypeError("The number of bodies in/outside Roche line doesn't have the right number of words/numbers")
+            toreturn_split_over_roche.append( numberofbodies_outsideroche_functime(float(temp[6]),float(temp[8]),float(temp[13]) ) )
     f.close()
-    return toreturn
+    return (toreturn,toreturn_split_over_roche)
 
 
 def collision_info_extractor(filename):
@@ -695,7 +705,7 @@ def plot_number_func_time(filename="stdout.out"):
     in the code."""
     
     fig = pp.figure()
-    num_func_time = numberofbodies_functime_reader(filename)
+    (num_func_time,roche_num_func_time) = numberofbodies_functime_reader(filename)
     t = []
     num = []
     for i in range(len(num_func_time)):
@@ -715,7 +725,24 @@ def plot_number_func_time(filename="stdout.out"):
     else:
         unit = "years"
 
-    pp.step(t,num,where='post',lw=2)
+    pp.step(t,num,where='post',lw=2,label='all bodies')
+
+    del t
+    del num
+
+    if roche_num_func_time: #If there is information for number of bodies inside and outside roche
+        t = []
+        num_inside = []
+        num_outside = []
+        for i in range(len(roche_num_func_time)):
+            t.append(roche_num_func_time[i].time)
+            num_inside.append(roche_num_func_time[i].number_inside_roche)
+            num_outside.append(roche_num_func_time[i].number_outside_roche)
+
+        pp.step(t,num_outside,where='post',lw=1.5,label='outside Roche')
+        pp.step(t,num_inside,where='post',lw=1.5,label='inside Roche')
+        pp.legend(loc='best')
+
     pp.xlabel("Time (" + unit + ")")
     pp.xscale('log')
     pp.ylabel("Number of bodies")

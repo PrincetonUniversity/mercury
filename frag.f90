@@ -695,6 +695,14 @@
     end interface
 !
     interface
+      subroutine how_many_bodies_inside_andoutside_roche_radius(n,nbig,t,x)
+        use kinds
+        integer(I4),   intent(in)::n,nbig
+        real(R8),      intent(in)::t,x(:,:)
+      end subroutine how_many_bodies_inside_andoutside_roche_radius
+   end interface
+!
+    interface
       subroutine inverse_corrector (dt,n,nbig,m,x,v,ngf)
       use kinds
       integer(I4), intent(in)::n,nbig
@@ -858,6 +866,7 @@
 ! Set up the initial conditions
     call setup (n,nbig,m,x,v,s,ngf,rho,rce_hill,status,index,name)
     write(*,*) "Number of big bodies at time 0 years is: ", nbig
+    call how_many_bodies_inside_andoutside_roche_radius(n,nbig,0.0,x)
 !
 ! Do the integration
     if (algor == 10) &
@@ -3984,6 +3993,7 @@
               flag_collision = .true.
             end do
             write(*,*) "Number of big bodies at time ", t/YEAR, " years is: ", nbig
+            call how_many_bodies_inside_andoutside_roche_radius(n,nbig,t/YEAR,x)
           end if
 !
 ! If we have integrated for long enough, stop the Bulirsch-Stoer integration
@@ -4056,6 +4066,7 @@
       if (flag_stop) then 
          !Write how many bodies there are at this time and stop
          write(*,*) "Number of big bodies at time ", t/YEAR, " years is: ", nbig
+         call how_many_bodies_inside_andoutside_roche_radius(n,nbig,t/YEAR,x)
          return
       end if
 
@@ -7100,3 +7111,33 @@
       end function modify_qstar_roche_radius
 
 
+
+!=============================================================================
+! Figures out how many bodies are inside and outside the Roche radius and prints those numbers   
+! 
+!   This has been hardcoded with the Roche radius of one solar mass and rho = 3 g/cc
+!
+!
+      subroutine how_many_bodies_inside_andoutside_roche_radius(n,nbig,t,x)
+        use kinds
+
+        implicit none
+        integer(I4),   intent(in)::n,nbig
+        real(R8),      intent(in)::t,x(:,:)
+        integer(I4)::  i,j, n_inside,n_outside
+
+
+        n_inside = 0
+        n_outside = 0
+
+        do i=1, n
+           if (dot_product(x(:,i), x(:,i)).le. 1.764d22) then !This number is the hardcoded Roche radius squared, in cm
+              n_inside = n_inside + 1
+           else
+              n_outside = n_outside + 1
+           end if
+        end do
+
+        write(*,*) " Num. bodies inside Roche at time ",t ," is: ", n_inside, " and outside Roche is: ", n_outside
+
+      end subroutine how_many_bodies_inside_andoutside_roche_radius
