@@ -725,7 +725,7 @@ def plot_number_func_time(filename="stdout.out"):
     else:
         unit = "years"
 
-    pp.step(t,num,where='post',lw=2,label='all bodies')
+    pp.step(t,num,where='post',lw=2.2,label='all bodies')
 
     del t
     del num

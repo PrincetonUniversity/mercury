@@ -126,3 +126,65 @@ def plot_a_func_time(aes, times, which_are_final_bodies=None,year_unit='kyr',tit
 
 
     return fig
+
+
+def adhoc_number_insideoutside_roche(time_list,aei_functime_list,num_objects_list):
+    """This function does an ad hoc calculation of the number
+    of bodies inside and outside the Roche radius by simply comparing
+    the semi-major axes against the Roche radius.  In the case of 
+    zero eccentricity, this would provide the correct answers, but with 
+    eccentricity an actual calculation would need to be made based on 
+    the actual position of the bodies.
+    Input: list of times, list of aeis function of time, list of total number
+       Note: the output of aei_func_time will
+        work here
+    Output: figure object
+    """
+
+
+    if not all(isinstance(item,outputreader.aei_singletime) for item in aei_functime_list):
+        raise TypeError("I was not passed a list entirely full of aei_singletime objects!")
+
+    if len(time_list) != len(aei_functime_list):
+        raise TypeError("The time list and aei list are not the same length!")
+
+    if len(time_list) != len(num_objects_list):
+        raise TypeError("The time list and aei list are not the same length!")
+
+    num_inside = []
+    num_outside = []
+
+    for i in range(len(aei_functime_list)):
+        n_in = 0
+        n_out = 0
+        for value in aei_functime_list[i].a:
+            if value < 0.00888: #Hardcoded value for roche radius
+                n_in += 1
+            else:
+                n_out += 1
+
+
+        num_inside.append(n_in)
+        num_outside.append(n_out)
+
+    temp = np.add(num_inside,num_outside)
+    for i in range(len(temp)):
+        if temp[i] != num_objects_list[i]:
+            raise TypeError("The sum of bodies inside and outside do not equal the total number of bodies! " + str(i) )
+
+    fig = pp.figure()
+
+    time_list = np.multiply(time_list,1e-3)
+    unit = 'kyr'
+
+    pp.step(time_list,num_objects_list,where='post',lw=2.5,label='all bodies')
+    pp.step(time_list,num_outside,where='post',lw=1.8,label='outside Roche')
+    pp.step(time_list,num_inside,where='post',lw=1.8,label='inside Roche')
+
+    pp.legend(loc='best')
+
+    pp.xlabel("Time (" + unit + ")")
+    pp.xscale('log')
+    pp.ylabel("Number of bodies")
+
+    return fig
