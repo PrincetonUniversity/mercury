@@ -2714,6 +2714,7 @@
       write (23,'(a,f9.4)')   '  b  / Rtarg:       ', b / rad(itarg)
       write (23,'(a,f9.4)')   '  Vimp / Vesc:      ', sqrt(v2imp / v2esc)
       write (23,'(a,f9.4)')   '  Vgm  / Vesc:      ', sqrt(v2gm  / v2esc)
+      write (23,'(a,f9.4)')   '  dist from star:   ', planet_sun_separation/AU
       write (23,*)
 !      write (23,'(a,f9.4)')   '  M1 / Msum:        ', m1 / msum
 !      write (23,'(a,f9.4)')   '  M1 / Mtarg:       ', m1 / m(itarg)

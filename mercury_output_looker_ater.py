@@ -178,8 +178,9 @@ def adhoc_number_insideoutside_roche(time_list,aei_functime_list,num_objects_lis
     unit = 'kyr'
 
     pp.step(time_list,num_objects_list,where='post',lw=2.5,label='all bodies')
-    pp.step(time_list,num_outside,where='post',lw=1.8,label='outside Roche')
-    pp.step(time_list,num_inside,where='post',lw=1.8,label='inside Roche')
+    pp.step(time_list,num_inside,where='post',lw=1.8,label='inside Roche',color='red')
+    pp.step(time_list,num_outside,where='post',lw=1.8,label='outside Roche',color='green')
+
 
     pp.legend(loc='best')
 
@@ -188,3 +189,50 @@ def adhoc_number_insideoutside_roche(time_list,aei_functime_list,num_objects_lis
     pp.ylabel("Number of bodies")
 
     return fig
+
+def plot_collision_scatterplot_divide_by_radius(collision_info,radialbins,title=None):
+    """This function will take the output of 
+    outputreader.collision_info_extractor through the input
+    collision_info and a range of radial bins (in AU) through 
+    radial bins (also a list of titles for each of the plots)
+
+    and then output a list of figures to plot"""
+
+    if !( len(radialbins) >= 2):
+        raise RuntimeError("radialbins is not long enough to even be a bin range")
+
+    collisions = collision_info[0]
+
+    collisions_binned_by_radius = []
+    
+    if ! all(collisions[i].radius != None for i in collisions):
+        raise RuntimeError("At least one of the collisions doesn't have a radius!")
+
+    for i in range(len(radialbins)-1):
+        temp = []
+        lower_r = radialbins[i]
+        upper_r = radialbins[i+1]
+        for j in range(len(collisions)):
+            if collisions[j].radius >= lower_r and collisions[j].radius < upper_r:
+                temp.append(collisions[j])
+
+        collisions_binned_by_radius.append(temp)
+
+
+    to_return = []
+    if title==None:
+        for i in range(len(collisions_binned_by_radius)):
+            title.append(plot_collision_scatterplot(filename="literallydoesntmatter",
+                                                    collision_info = (collisions_binned_by_radius[i],
+                                                                      collision_info[1],collision_info[2])))
+
+    else:
+        if len(title) != len(collisions_binned_by_radius):
+            raise RuntimeError("don't have enough titles for all the plots!")
+        for i in range(len(collisions_binned_by_radius)):
+            title.append(plot_collision_scatterplot(filename="literallydoesntmatter",
+                                                    collision_info = (collisions_binned_by_radius[i],
+                                                                      collision_info[1],collision_info[2]),
+                                                    title=title[i]))
+
+    return to_return

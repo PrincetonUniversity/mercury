@@ -67,7 +67,7 @@ class collision_type:
     GRAZING_FRAG = 6  #if grazing regime and fragments
 
 class collision_information:
-    def __init__(self,target_name_,projectile_name_,time_,classification_,mt_over_mp_,vimpact_vescape_ratio_,vgrazemerge_vescape_ratio_,B_Rtarg_ratio_,masslargestremnant_msum_ratio_,masslargestremnant_mtarget_ratio_,mfrag_mfragmin_ratio_,number_of_fragments_):
+    def __init__(self,target_name_,projectile_name_,time_,classification_,mt_over_mp_,vimpact_vescape_ratio_,vgrazemerge_vescape_ratio_,B_Rtarg_ratio_,masslargestremnant_msum_ratio_,masslargestremnant_mtarget_ratio_,mfrag_mfragmin_ratio_,number_of_fragments_,radius_):
         self.target_name = target_name_
         self.projectile_name = projectile_name_
         self.time = time_
@@ -80,6 +80,7 @@ class collision_information:
         self.masslargestremnant_mtarget_ratio = masslargestremnant_mtarget_ratio_
         self.mfrag_mfragmin_ratio = mfrag_mfragmin_ratio_
         self.number_of_fragments = number_of_fragments_
+        self.radius = radius_
 
 
 class central_collision_information:
@@ -326,13 +327,19 @@ def collision_info_extractor(filename):
                 vimpact_vescape_ratio = float(info[-1])
                 info = f.next().split()
                 vgrazemerge_vescape_ratio = float(info[-1])
-                f.next()
+                info = f.next().split()     
+                if info: #If info is not an empty list
+                    radius = float(info[-1])
+                    f.next()
+                else:
+                    radius = None #Set it to None because it wasn't there to be recorded
                 info = f.next().split()
                 masslargestremnant_msum_ratio = float(info[-1])
                 info = f.next().split()
                 masslargestremnant_mtarget_ratio = float(info[-1])
                 info = f.next().split()
                 mfrag_mfragmin_ratio = float(info[-1])
+
 
                 #Some will have this next line, others will not
                 info = f.next().split()
@@ -402,7 +409,7 @@ def collision_info_extractor(filename):
 
 
 
-                collision_info.append( collision_information(target_name,projectile_name,time,classification,mass_ratio,vimpact_vescape_ratio,vgrazemerge_vescape_ratio,B_Rtarg_ratio,masslargestremnant_msum_ratio,masslargestremnant_mtarget_ratio,mfrag_mfragmin_ratio,number_of_fragments) )
+                collision_info.append( collision_information(target_name,projectile_name,time,classification,mass_ratio,vimpact_vescape_ratio,vgrazemerge_vescape_ratio,B_Rtarg_ratio,masslargestremnant_msum_ratio,masslargestremnant_mtarget_ratio,mfrag_mfragmin_ratio,number_of_fragments,radius) )
             elif "collided with the central body" in line:
                 info_found = True
                 temp = line.split()
