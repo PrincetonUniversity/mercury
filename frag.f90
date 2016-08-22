@@ -850,7 +850,7 @@
 !
     use constants;    use globals
     use interfaces, only: driver_hybrid, driver_mvs, driver_variable_step, &
-      finish, setup
+      finish, setup, how_many_bodies_inside_andoutside_roche_radius
 
     implicit none
 !
@@ -866,7 +866,7 @@
 ! Set up the initial conditions
     call setup (n,nbig,m,x,v,s,ngf,rho,rce_hill,status,index,name)
     write(*,*) "Number of big bodies at time 0 years is: ", nbig
-    call how_many_bodies_inside_andoutside_roche_radius(n,nbig,0.0,x)
+    call how_many_bodies_inside_andoutside_roche_radius(n,nbig,ZERO,x)
 !
 ! Do the integration
     if (algor == 10) &
@@ -3782,7 +3782,8 @@
       check_central, check_critical, check_encounters, collide_bodies, &
       collide_central, convert_vhelio_to_bary, convert_vbary_to_helio, &
       drift, ejections, jump, output_coords, output_datadump, output_encounters, &
-      output_progress, remove_dead_bodies, output_codes, check_multiple_collisions
+      output_progress, remove_dead_bodies, output_codes, &
+      check_multiple_collisions, how_many_bodies_inside_andoutside_roche_radius
 
 !    #ifdef f2003
     use iso_fortran_env, only : stdout=>output_unit
@@ -7132,6 +7133,8 @@
         n_outside = 0
 
         do i=1, n
+           !write (*,*) i
+           !write (*,*) x(:,i)
            if (dot_product(x(:,i), x(:,i)).le. 1.764d22) then !This number is the hardcoded Roche radius squared, in cm
               n_inside = n_inside + 1
            else
