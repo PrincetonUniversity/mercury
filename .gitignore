@@ -18,6 +18,7 @@ mercury7_noroche
 mercury7_noroche_nocondor
 mercury7_rho0p1
 mercury7_rho0p1_nocondor
+mercury7_lotsofnames
 close6
 frag_f90
 *~
@@ -25,6 +26,7 @@ frag_f90
 
 code_pdfs
 *candel*
+code_profiling
 
 precision.f90
 

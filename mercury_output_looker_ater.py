@@ -198,14 +198,14 @@ def plot_collision_scatterplot_divide_by_radius(collision_info,radialbins,title=
 
     and then output a list of figures to plot"""
 
-    if !( len(radialbins) >= 2):
+    if  len(radialbins) < 2:
         raise RuntimeError("radialbins is not long enough to even be a bin range")
 
     collisions = collision_info[0]
 
     collisions_binned_by_radius = []
     
-    if ! all(collisions[i].radius != None for i in collisions):
+    if not (all(collisions[i].radius != None for i in collisions) ):
         raise RuntimeError("At least one of the collisions doesn't have a radius!")
 
     for i in range(len(radialbins)-1):
