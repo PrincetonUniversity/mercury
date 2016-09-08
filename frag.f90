@@ -4013,7 +4013,7 @@
                 rhobs,rcebs,radbs,rcritbs,statusbs,indexbs,namebs)
               flag_collision = .true.
             end do
-            write(*,*) "Number of big bodies at time ", t/YEAR, " years is: ", nbig !Use t here instead of time to get time of collision
+            !write(*,*) "Number of big bodies at time ", t/YEAR, " years is: ", nbig !Use t here instead of time to get time of collision
             call how_many_bodies_inside_andoutside_roche_radius(n,nbig,t/YEAR,x)
           end if
 !
@@ -4089,8 +4089,8 @@
         call output_codes (n,nbig,status,index,name,m)
         rcrit(1:n) = calc_rcrit  (dt,n,m,x,v)
         flag_accel = .true.
-        !write(*,*) "Number of big bodies at time ", t/YEAR, " years is: ", nbig !Use t here instead of time to get time of collision
-        !call how_many_bodies_inside_andoutside_roche_radius(n,nbig,t/YEAR,x)
+        write(*,*) "Number of big bodies at time ", t/YEAR, " years is: ", nbig !Use t here instead of time to get time of collision
+        call how_many_bodies_inside_andoutside_roche_radius(n,nbig,t/YEAR,x)
 
       end if
 !
