@@ -66,8 +66,13 @@ class collision_type:
     HIT_AND_RUN = 5   #if grazing regime and largest fragment larger than target mass
     GRAZING_FRAG = 6  #if grazing regime and fragments
 
+"""class collision_name_mass_coupled:
+    def __init__(self,name_,mass_):
+        self.name = name_
+        self.mass = mass_"""
+
 class collision_information:
-    def __init__(self,target_name_,projectile_name_,time_,classification_,mt_over_mp_,vimpact_vescape_ratio_,vgrazemerge_vescape_ratio_,B_Rtarg_ratio_,masslargestremnant_msum_ratio_,masslargestremnant_mtarget_ratio_,mfrag_mfragmin_ratio_,number_of_fragments_,radius_):
+    def __init__(self,target_name_,projectile_name_,time_,classification_,mt_over_mp_,vimpact_vescape_ratio_,vgrazemerge_vescape_ratio_,B_Rtarg_ratio_,masslargestremnant_msum_ratio_,masslargestremnant_mtarget_ratio_,mfrag_mfragmin_ratio_,number_of_fragments_,radius_,names_,masses_):
         self.target_name = target_name_
         self.projectile_name = projectile_name_
         self.time = time_
@@ -81,6 +86,12 @@ class collision_information:
         self.mfrag_mfragmin_ratio = mfrag_mfragmin_ratio_
         self.number_of_fragments = number_of_fragments_
         self.radius = radius_
+        self.remnants = []
+        if len(names_) != len(masses_):
+            raise RuntimeError("names_ and masses_ not same length")
+        self.remnant_names = names_
+        self.remnant_masses = masses_
+        
 
 
 class central_collision_information:
@@ -310,7 +321,7 @@ def collision_info_extractor(filename):
     f = open(filename, 'r')
 
     info_found = False
-    
+    no_remnant_mergers = False
 
     while True:
         M2_info = False
@@ -373,43 +384,79 @@ def collision_info_extractor(filename):
                 elif info[1] == 'grazing' and info[2] == 'smashed':
                     classification = collision_type.GRAZING_FRAG
                 else:
-                    raise TypeError("Don't recognize collision type" + info[1] + " " + info[2] + " " + info[3])
-                #And figure out how many fragments were made
-                if number_of_fragments == None: #If we couldn't assume a fragment number from above
-                    info = f.next().split()
-                    if info[0] != "Remnant:":
-                        raise TypeError("Expected to count number of fragments, but number of fragments not recorded!")
-                    info = f.next().split()
-                    if float(info[3]) < 1e-20: #If the mass of the second remnant is zero
+                    raise RuntimeError("Don't recognize collision type" + info[1] + " " + info[2] + " " + info[3])
+
+                names = []
+                masses = []
+                no_second_remnant = None
+            #    if number_of_fragments == None: #If we couldn't assume a fragment number from above
+                info = f.next().split()
+                if info:
+                    if info[0] == "Remnant:":
+                        names.append(info[1])
+                        masses.append(float(info[3]))
+                        info = f.next().split()
+                        if info[0] == "Remnant:":
+                            no_second_remnant = False
+                            names.append(info[1])
+                            masses.append(float(info[3]))
+                            if float(info[3]) < 1e-20: #If the mass of the second remnant is zero
+                                second_mass_matters = False #Don't count this towards total number of final bodies
+                            else:
+                                second_mass_matters = True
+                        else:
+                            no_second_remnant = True
+                    else:
                         second_mass_matters = False #Don't count this towards total number of final bodies
-                    else:
-                        second_mass_matters = True
-                    f_num = 0
+                        no_second_remnant = True
+                        if no_remnant_mergers == False:
+                            no_remnant_mergers = True
+                            #raise RuntimeError("Expected to see Remnant information, but information not recorded!")
+                            print ""; print ""; print ""; print ""; print ""; print ""; print ""; print ""
+                            print "************************************************************************"
+                            print "        Backwards version, no Remnants available for mergers"
+                            print "************************************************************************"
+                            print ""; print ""; print ""; print ""; print ""; print ""; print ""; print ""
+                else:
+                    second_mass_matters = False #Don't count this towards total number of final bodies
+                    no_second_remnant = True
+                    if no_remnant_mergers == False:
+                        no_remnant_mergers = True
+                            #raise RuntimeError("Expected to see Remnant information, but information not recorded!")
+                        print ""; print ""; print ""; print ""; print ""; print ""; print ""; print ""
+                        print "************************************************************************"
+                        print "        Backwards version, no Remnants available for mergers"
+                        print "************************************************************************"
+                        print ""; print ""; print ""; print ""; print ""; print ""; print ""; print ""
+                f_num = 0
+                if no_second_remnant == False:
                     info=f.next().split()
-                    if info: #If list is not empty
-                        while(info[0] == "Fragment:"):
-                            f_num += 1
-                            info=f.next().split()
-                            if not info: #If list is empty
-                                break
-                    if second_mass_matters == True:
-                        number_of_fragments = f_num
-                    else:
-                        number_of_fragments = f_num - 1
+                if info: #If list is not empty
+                    while(info[0] == "Fragment:"):
+                        names.append(info[1])
+                        masses.append(float(info[3]))
+                        f_num += 1
+                        info=f.next().split()
+                        if not info: #If list is empty
+                            break
+                if second_mass_matters == True:
+                    number_of_fragments = f_num
+                else:
+                    number_of_fragments = f_num - 1
 
-                    if number_of_fragments < -1: #If somehow the number is very negative
-                        print target_name
-                        print projectile_name
-                        print time
-                        print classification
-                        raise TypeError("The number of fragments is going onto record as being negative, " + str(number_of_fragments))
+                if number_of_fragments < -1: #If somehow the number is very negative
+                    print target_name
+                    print projectile_name
+                    print time
+                    print classification
+                    raise TypeError("The number of fragments is going onto record as being negative, " + str(number_of_fragments))
 
-                    if number_of_fragments == -1: #This is probably because two minimum frag mass bodies collided and merged just because they can't get smaller
-                        number_of_fragments = 0
+                if number_of_fragments == -1: #This is probably because two minimum frag mass bodies collided and merged just because they can't get smaller
+                    number_of_fragments = 0
 
 
 
-                collision_info.append( collision_information(target_name,projectile_name,time,classification,mass_ratio,vimpact_vescape_ratio,vgrazemerge_vescape_ratio,B_Rtarg_ratio,masslargestremnant_msum_ratio,masslargestremnant_mtarget_ratio,mfrag_mfragmin_ratio,number_of_fragments,radius) )
+                collision_info.append( collision_information(target_name,projectile_name,time,classification,mass_ratio,vimpact_vescape_ratio,vgrazemerge_vescape_ratio,B_Rtarg_ratio,masslargestremnant_msum_ratio,masslargestremnant_mtarget_ratio,mfrag_mfragmin_ratio,number_of_fragments,radius,names,masses) )
             elif "collided with the central body" in line:
                 info_found = True
                 temp = line.split()
@@ -425,6 +472,35 @@ def collision_info_extractor(filename):
         return (collision_info, central_collision_info, ejection_info)
     else:
         raise TypeError("Did not find any information in file " + filename)
+
+
+def mass_func_time_by_collisions(names_of_bodies,initial_body_mass,filename="info.out"):
+    """This will get mass as a function of time for bodies specified in names_of_bodies
+    based on the output of collision_info_extractor.  Initial_body_mass is the initial mass
+    of the specific bodies, and filename is the file that contains the collision information
+    (usually info.out)
+    """
+    collisions, central_collisions, ejections = collision_info_extractor(filename)
+
+    t_lists = [ [0] for i in range(len(names_of_bodies)) ]
+    m_lists = [ [initial_body_mass] for i in range(len(names_of_bodies)) ]
+
+    for i in range(len(collisions)):
+        for j in range(len(collisions[i].names)):
+            if collisions[i].names[j] in names_of_bodies:
+                index = names_of_bodies.index(collisions[i].remnant_names[j])
+                m_lists[index].append(collisions[i].remnant_masses[j])
+                t_lists[index].append(collisions[i].time)
+
+    return (m_lists,t_lists)
+
+
+
+
+
+
+
+
 
 ##########################
 ##########################
