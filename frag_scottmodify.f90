@@ -2671,7 +2671,7 @@
     integer(I4)::itarg,iproj
     real(R8)::xrel(3),vrel(3),xcom(3),vcom(3),rsum,msum
     real(R8)::b,v2imp,m1,m2,v2esc,v2gm,zeta,fac
-    real(R8)::planet_sun_separation
+    real(R8)::planet_sun_separation, v2esc_modified
     character(25)::text
 !------------------------------------------------------------------------------
 ! Write message to info file
@@ -2732,7 +2732,11 @@
                write(*,*) m(itarg)
 !            endif
 ! Simple merger
-      if (v2imp <= v2esc) then
+!      if (v2imp <= v2esc) then
+
+               !modify the escape velocity by the Hill radius
+       v2esc_modified = v2esc*(1 - rsum/ (planet_sun_separation * (THIRD * m(itarg) / mcen)**THIRD   ) )
+       if (v2imp <= v2esc_modified) then
 !  If it's really a simple merger, then these are the values that actually occur, 
 !    not the ratios that were originally written and are commented out above.
          write (23,'(a,f9.4)')   '  M1 / Msum:        ', 1.0
@@ -4618,10 +4622,6 @@
     m(iproj) = ZERO;             x(:,iproj) = -x(:,iproj)
     v(:,iproj) = -v(:,iproj);    s(:,iproj) = ZERO
     status(iproj) = 'dead '
-
-! Print out what the remnant mass is
-    write(23,'(3a,es11.4)') '   Remnant:  ',name(itarg), '  m=', msum / MSUN
-
 !
     end subroutine merge_bodies
 !==============================================================================

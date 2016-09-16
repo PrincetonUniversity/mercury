@@ -684,6 +684,8 @@ def plot_collision_scatterplot(filename="info.out",whichones=None,title="",colli
 
     fig = pp.figure()
 
+    print "percentage that are perfect mergers: " + str( float(len(merger))/float(len(collisions)) * 100.0) + " %"
+
     pp.scatter([ item.B_Rtarg_ratio for item in merger], [ item.vimpact_vescape_ratio for item in merger],marker=markers_touse[0],color=colors_touse[0],label="merger")
     pp.scatter([ item.B_Rtarg_ratio for item in effective_merger], [ item.vimpact_vescape_ratio for item in effective_merger],marker=markers_touse[0],color="orange",label="effective merger")
     pp.scatter([ item.B_Rtarg_ratio for item in graze_merger], [ item.vimpact_vescape_ratio for item in graze_merger],marker=markers_touse[0],color="cyan",label="grazing merger")

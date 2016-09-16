@@ -2732,17 +2732,17 @@
                write(*,*) m(itarg)
 !            endif
 ! Simple merger
-      if (v2imp <= v2esc) then
+!!      if (v2imp <= v2esc) then
 !  If it's really a simple merger, then these are the values that actually occur, 
 !    not the ratios that were originally written and are commented out above.
-         write (23,'(a,f9.4)')   '  M1 / Msum:        ', 1.0
-         write (23,'(a,f9.4)')   '  M1 / Mtarg:       ', msum / m(itarg)
-         write (23,'(a,f9.4)')   '  Mfrag / Mfragmin: ', 0.0
+!!         write (23,'(a,f9.4)')   '  M1 / Msum:        ', 1.0
+!!         write (23,'(a,f9.4)')   '  M1 / Mtarg:       ', msum / m(itarg)
+!!         write (23,'(a,f9.4)')   '  Mfrag / Mfragmin: ', 0.0
 
-        text = ' simply merged with      '
-        call write_coll_text (t,name(itarg),name(iproj),text,25)
-        call merge_bodies (itarg,iproj,m,x,v,s,status,name)
-      else
+!!        text = ' simply merged with      '
+!!        call write_coll_text (t,name(itarg),name(iproj),text,25)
+!!        call merge_bodies (itarg,iproj,m,x,v,s,status,name)
+!!      else
 
 ! Write these actual values
       write (23,'(a,f9.4)')   '  M1 / Msum:        ', m1 / msum
@@ -2803,7 +2803,7 @@
               rce_hill,rad,rcrit,status,index,name)
           end if
         end if
-      end if
+      !!end if
     end if
 !
 ! Recompute physical radii
@@ -4618,10 +4618,6 @@
     m(iproj) = ZERO;             x(:,iproj) = -x(:,iproj)
     v(:,iproj) = -v(:,iproj);    s(:,iproj) = ZERO
     status(iproj) = 'dead '
-
-! Print out what the remnant mass is
-    write(23,'(3a,es11.4)') '   Remnant:  ',name(itarg), '  m=', msum / MSUN
-
 !
     end subroutine merge_bodies
 !==============================================================================

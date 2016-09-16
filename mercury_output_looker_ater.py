@@ -181,6 +181,7 @@ def adhoc_number_insideoutside_roche(time_list,aei_functime_list,num_objects_lis
     pp.step(time_list,num_inside,where='post',lw=1.8,label='inside Roche',color='red')
     pp.step(time_list,num_outside,where='post',lw=1.8,label='outside Roche',color='green')
 
+    np.savetxt("inout_adhoc_roche_output.txt",(time_list,num_objects_list,num_inside,num_outside) )
 
     pp.legend(loc='best')
 

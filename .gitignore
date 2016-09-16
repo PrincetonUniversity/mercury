@@ -19,6 +19,10 @@ mercury7_noroche_nocondor
 mercury7_rho0p1
 mercury7_rho0p1_nocondor
 mercury7_lotsofnames
+mercury7_qstarmod
+mercury7_qstarmod_nocondor
+mercury7_scottmod
+mercury7_scottmod_nocondor
 close6
 frag_f90
 *~
