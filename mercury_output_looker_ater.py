@@ -25,7 +25,9 @@ def mutual_hill_radii_checker(planets,central_object_mass=1.):
     (which are handed as an aei_info object) and compare to 
     their separations.  The central object mass is an optional parameter
     with default value of 1 in solar masses.
-    Returned is a list of delta a/mutual hill radii.
+    Returned is a tuple: first element, list of delta a/mutual hill radii.
+       Second element, list of "mutual semimajor axis", the average of the 
+       semimajoraxes of the two bodies.
     """
     if not isinstance(planets, outputreader.aei_singletime):#If not an aei_info object
         raise TypeError("I wasn't given an aei_singletime instance!")
@@ -55,15 +57,17 @@ def mutual_hill_radii_checker(planets,central_object_mass=1.):
         aes = planets.a
         masses = planets.mass
 
-    output = []
+    output1 = []
+    output2 = []
 
     for i in range(len(planets.a)-1):
         print i
         delta_a = aes[i+1] - aes[i]
         mutual_hill_radius = 0.5 * (aes[i+1] + aes[i]) * np.power( (masses[i+1] + masses[i])/ (3.0*central_object_mass) , 1./3.)
-        output.append(delta_a/mutual_hill_radius)
+        output1.append(delta_a/mutual_hill_radius)
+        output2.append( (aes[i+1] + aes[i])/2.0 )
 
-    return output
+    return (output1, output2)
 
 
 def plot_mutual_hill_radii(planets,central_object_mass=1.):
@@ -79,13 +83,10 @@ def plot_mutual_hill_radii(planets,central_object_mass=1.):
 
     fig = pp.figure()
 
-    stuff = mutual_hill_radii_checker(planets)
+    (stuff1, stuff2) = mutual_hill_radii_checker(planets)
 
-    a_list = []
-    for i in range(len(planets.a)-1): #This will allow us to plot separation as a function of position
-        a_list.append( (planets.a[i] + planets.a[i+1])/2.0)
 
-    pp.scatter(a_list,stuff)
+    pp.scatter(stuff2,stuff1)
     pp.xlabel("Semi-major axis (AU), defined to be between the planets")
     pp.ylabel("Separation / mutual Hill radii")
     pp.ylim(bottom=0)
@@ -237,3 +238,61 @@ def plot_collision_scatterplot_divide_by_radius(collision_info,radialbins,title=
                                                     title=title[i]))
 
     return to_return
+
+
+def collision_type_func_time(input_file="info.out"):
+    """Takes a specified info.out file and returns a tuple,
+    first element is times of collisions, second is list of the
+    collision types (collision_info instances), third is number of bodies
+    after collision
+    """
+
+    collision, central, eject = outputreader.collision_info_extractor(input_file)
+
+    time_list = []
+    collision_classification_list = []
+    numbers_list = []
+    for i in range(len(collision)):
+        time_list.append(collision[i].time)
+        collision_classification_list.append(collision[i].classification)
+        numbers_list.append(len(collision[i].remnant_names))
+    
+
+    return (time_list,collision_classification_list,numbers_list)
+
+
+def plot_collision_type_func_time(input_file="info.out",x_limits=None):
+    """Given an info.out file, this figures out the collision types as 
+    a function of time and then plots this
+    and returns a pp.figure to plot.
+    """
+
+    fig = pp.figure()
+    time, collisions, numbers = collision_type_func_time(input_file=input_file)
+
+
+    time_merger = [time[i] for i in range(len(time)) if collisions[i] in [outputreader.collision_type.SIMPLE_MERGER,outputreader.collision_type.EFFECTIVE_MERGER,outputreader.collision_type.GRAZE_MERGER] ]
+    #merger = [item for item in collisions if item in [outputreader.collision_type.SIMPLE_MERGER,outputreader.collision_type.EFFECTIVE_MERGER,outputreader.collision_type.GRAZE_MERGER] ]
+
+
+    time_hitandrun = [time[i] for i in range(len(time)) if collisions[i] in [outputreader.collision_type.HIT_AND_RUN] ]
+    #hitandrun = [item for item in collisions if item in [outputreader.collision_type.HIT_AND_RUN] ]
+
+    time_fragment_increasenum = [time[i] for i in range(len(time)) if (collisions[i] in [outputreader.collision_type.NONGRAZING_FRAG,outputreader.collision_type.GRAZING_FRAG]  and numbers[i] > 2 )  ]
+    time_fragment_numstaysame = [time[i] for i in range(len(time)) if (collisions[i] in [outputreader.collision_type.NONGRAZING_FRAG,outputreader.collision_type.GRAZING_FRAG]  and numbers[i] == 2 )  ]
+    #fragment =  [item for item in collisions if item in [outputreader.collision_type.NONGRAZING_FRAG,outputreader.collision_type.GRAZING_FRAG] ]
+
+
+    pp.scatter(time_merger,[3]*len(time_merger),color='red',alpha=0.4,s=10,label="merge")
+    pp.scatter(time_hitandrun,[2]*len(time_hitandrun),color='blue',alpha=0.4,s=10,label="h&r")
+    pp.scatter(time_fragment_increasenum,[1.2]*len(time_fragment_increasenum),color='cyan',alpha=0.4,s=10,label="frag increase")
+    pp.scatter(time_fragment_numstaysame,[1]*len(time_fragment_numstaysame),color='green',alpha=0.4,s=10,label="frag stay same")
+
+    pp.legend(loc='upper left')
+
+    pp.xlabel("Time (yr)")
+    pp.ylabel("Type of collision")
+    if x_limits != None:
+        pp.xlim(x_limits)
+
+    return fig

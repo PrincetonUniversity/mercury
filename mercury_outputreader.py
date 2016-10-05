@@ -398,12 +398,12 @@ def collision_info_extractor(filename):
                         info = f.next().split()
                         if info[0] == "Remnant:":
                             no_second_remnant = False
-                            names.append(info[1])
-                            masses.append(float(info[3]))
                             if float(info[3]) < 1e-20: #If the mass of the second remnant is zero
                                 second_mass_matters = False #Don't count this towards total number of final bodies
                             else:
                                 second_mass_matters = True
+                                names.append(info[1])
+                                masses.append(float(info[3]))
                         else:
                             no_second_remnant = True
                     else:
@@ -474,10 +474,11 @@ def collision_info_extractor(filename):
         raise TypeError("Did not find any information in file " + filename)
 
 
-def mass_func_time_by_collisions(names_of_bodies,initial_body_mass,filename="info.out"):
+def mass_func_time_by_collisions(names_of_bodies,initial_body_mass,final_time,filename="info.out"):
     """This will get mass as a function of time for bodies specified in names_of_bodies
     based on the output of collision_info_extractor.  Initial_body_mass is the initial mass
-    of the specific bodies, and filename is the file that contains the collision information
+    of the specific bodies, final_time is the time at the end of the integration,
+    and filename is the file that contains the collision information
     (usually info.out)
     """
     collisions, central_collisions, ejections = collision_info_extractor(filename)
@@ -486,11 +487,16 @@ def mass_func_time_by_collisions(names_of_bodies,initial_body_mass,filename="inf
     m_lists = [ [initial_body_mass] for i in range(len(names_of_bodies)) ]
 
     for i in range(len(collisions)):
-        for j in range(len(collisions[i].names)):
-            if collisions[i].names[j] in names_of_bodies:
+        for j in range(len(collisions[i].remnant_names)):
+            if collisions[i].remnant_names[j] in names_of_bodies:
                 index = names_of_bodies.index(collisions[i].remnant_names[j])
                 m_lists[index].append(collisions[i].remnant_masses[j])
                 t_lists[index].append(collisions[i].time)
+
+    # Now to add on the final time/final mass so as to complete the eventual plot           
+    for i in range(len(t_lists)):
+        t_lists[i].append(final_time)
+        m_lists[i].append(m_lists[i][-1])
 
     return (m_lists,t_lists)
 
@@ -783,7 +789,7 @@ def plot_collision_scatterplot(filename="info.out",whichones=None,title="",colli
 
 
 
-def plot_number_func_time(filename="stdout.out"):
+def plot_number_func_time(filename="stdout.out",xscale='log'):
     """This will plot the number of big bodies as a function of time,
     as read from a specified file name.  The default file name is stdout.out,
     since it is to the stdout that the number of bodies is written 
@@ -829,7 +835,13 @@ def plot_number_func_time(filename="stdout.out"):
         pp.legend(loc='best')
 
     pp.xlabel("Time (" + unit + ")")
-    pp.xscale('log')
+    if xscale == 'log':
+        pp.xscale('log')
+    elif xscale == 'linear':
+        pp.xscale('linear')
+    else:
+        print "Unrecognized xscale argument!  Defaulting to log."
+        pp.xscale('log')
     pp.ylabel("Number of bodies")
 
     return fig

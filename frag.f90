@@ -2722,14 +2722,14 @@
 !
 
 !           if (time/YEAR< 0.33315168377836112.and.time/YEAR> 0.33313168377836112) then
-               write(*,*) name(iproj)
-               write(*,*) x(:,iproj)
-               write(*,*) v(:,iproj)
-               write(*,*) m(iproj)
-               write(*,*) name(itarg)
-               write(*,*) x(:,itarg)
-               write(*,*) v(:,itarg)
-               write(*,*) m(itarg)
+!               write(*,*) name(iproj)
+!               write(*,*) x(:,iproj)
+!               write(*,*) v(:,iproj)
+!               write(*,*) m(iproj)
+!               write(*,*) name(itarg)
+!               write(*,*) x(:,itarg)
+!               write(*,*) v(:,itarg)
+!               write(*,*) m(itarg)
 !            endif
 ! Simple merger
       if (v2imp <= v2esc) then
@@ -4057,29 +4057,29 @@
       v(:,1:n) = v(:,1:n)  +  dtby2 * a(:,1:n)
       time = time  +  dt
 
-      if (time/YEAR> 9.72813141683673692E-002.and.time/YEAR< 0.12860780287472727) then
-         write(*,*) "-------------------"
-         write(*,*) "time: ", time/YEAR
-         write(*,*) name(88)
-         write(*,*) x(:,88)
-         write(*,*) v(:,88)
-         write(*,*) m(88)
-         write(*,*) name(87)
-         write(*,*) x(:,87)
-         write(*,*) v(:,87)
-         write(*,*) m(87)
-         write(*,*) "----"
-         write(*,*) name(56)
-         write(*,*) x(:,56)
-         write(*,*) v(:,56)
-         write(*,*) m(56)
-         write(*,*) name(54)
-         write(*,*) x(:,54)
-         write(*,*) v(:,54)
-         write(*,*) m(54)
-         write(*,*) "--endeth-----"
+!      if (time/YEAR> 9.72813141683673692E-002.and.time/YEAR< 0.12860780287472727) then
+!         write(*,*) "-------------------"
+!         write(*,*) "time: ", time/YEAR
+!         write(*,*) name(88)
+!         write(*,*) x(:,88)
+!         write(*,*) v(:,88)
+!         write(*,*) m(88)
+!         write(*,*) name(87)
+!         write(*,*) x(:,87)
+!         write(*,*) v(:,87)
+!         write(*,*) m(87)
+!         write(*,*) "----"
+!         write(*,*) name(56)
+!         write(*,*) x(:,56)
+!         write(*,*) v(:,56)
+!         write(*,*) m(56)
+!         write(*,*) name(54)
+!         write(*,*) x(:,54)
+!         write(*,*) v(:,54)
+!         write(*,*) m(54)
+!         write(*,*) "--endeth-----"
          
-      endif
+!      endif
 
 
 !
