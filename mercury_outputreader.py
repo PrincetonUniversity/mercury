@@ -72,7 +72,7 @@ class collision_type:
         self.mass = mass_"""
 
 class collision_information:
-    def __init__(self,target_name_,projectile_name_,time_,classification_,mt_over_mp_,vimpact_vescape_ratio_,vgrazemerge_vescape_ratio_,B_Rtarg_ratio_,masslargestremnant_msum_ratio_,masslargestremnant_mtarget_ratio_,mfrag_mfragmin_ratio_,number_of_fragments_,radius_,names_,masses_):
+    def __init__(self,target_name_,projectile_name_,time_,classification_,mt_over_mp_,vimpact_vescape_ratio_,vgrazemerge_vescape_ratio_,B_Rtarg_ratio_,masslargestremnant_msum_ratio_,masslargestremnant_mtarget_ratio_,mfrag_mfragmin_ratio_,number_of_fragments_,radius_,modified_escape_velocity_ratio_,names_,masses_):
         self.target_name = target_name_
         self.projectile_name = projectile_name_
         self.time = time_
@@ -86,6 +86,7 @@ class collision_information:
         self.mfrag_mfragmin_ratio = mfrag_mfragmin_ratio_
         self.number_of_fragments = number_of_fragments_
         self.radius = radius_
+        self.modified_escape_velocity_ratio = modified_escape_velocity_ratio_
         self.remnants = []
         if len(names_) != len(masses_):
             raise RuntimeError("names_ and masses_ not same length")
@@ -323,6 +324,9 @@ def collision_info_extractor(filename):
     info_found = False
     no_remnant_mergers = False
 
+    reported_no_radius = False
+    reported_no_vescmodified = False
+
     while True:
         M2_info = False
         try:
@@ -344,6 +348,11 @@ def collision_info_extractor(filename):
                     f.next()
                 else:
                     radius = None #Set it to None because it wasn't there to be recorded
+                if info: #If info is not an empty list
+                    modified_escape_velocity_ratio = float(info[-1])
+                    f.next()
+                else:
+                    modified_escape_velocity_ratio = None
                 info = f.next().split()
                 masslargestremnant_msum_ratio = float(info[-1])
                 info = f.next().split()
@@ -456,7 +465,24 @@ def collision_info_extractor(filename):
 
 
 
-                collision_info.append( collision_information(target_name,projectile_name,time,classification,mass_ratio,vimpact_vescape_ratio,vgrazemerge_vescape_ratio,B_Rtarg_ratio,masslargestremnant_msum_ratio,masslargestremnant_mtarget_ratio,mfrag_mfragmin_ratio,number_of_fragments,radius,names,masses) )
+                collision_info.append( collision_information(target_name,projectile_name,time,classification,mass_ratio,vimpact_vescape_ratio,vgrazemerge_vescape_ratio,B_Rtarg_ratio,masslargestremnant_msum_ratio,masslargestremnant_mtarget_ratio,mfrag_mfragmin_ratio,number_of_fragments,radius,modified_escape_velocity_ratio,names,masses) )
+
+                #### Raise some backwards compatibility notices
+                if (radius == None and reported_no_radius == False):
+                    print ""; print ""; print ""; print ""; print ""; print ""; print ""; print ""
+                    print "************************************************************************"
+                    print "        Backwards version, no radius recorded"
+                    print "************************************************************************"
+                    print ""; print ""; print ""; print ""; print ""; print ""; print ""; print ""
+                    reported_no_radius = True
+                if (radius == None and reported_no_vescmodifed == False):
+                    print ""; print ""; print ""; print ""; print ""; print ""; print ""; print ""
+                    print "************************************************************************"
+                    print "        Backwards version, no radius recorded"
+                    print "************************************************************************"
+                    print ""; print ""; print ""; print ""; print ""; print ""; print ""; print ""
+                    reported_no_vescmodified = True
+                
             elif "collided with the central body" in line:
                 info_found = True
                 temp = line.split()

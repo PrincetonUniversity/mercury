@@ -2671,7 +2671,7 @@
     integer(I4)::itarg,iproj
     real(R8)::xrel(3),vrel(3),xcom(3),vcom(3),rsum,msum
     real(R8)::b,v2imp,m1,m2,v2esc,v2gm,zeta,fac
-    real(R8)::planet_sun_separation
+    real(R8)::planet_sun_separation, v2esc_modified
     character(25)::text
 !------------------------------------------------------------------------------
 ! Write message to info file
@@ -2708,13 +2708,15 @@
 !..boundary between graze & merge and hit & run (Genda et al. 2012)
       zeta = ((m(itarg)  -  m(iproj)) / msum)**2
       fac = (ONE  -  b / rsum)**2.5_R8
-      v2gm = v2esc * (C1 * zeta * fac  +  C2 * zeta  +  C3 * fac  +  C4)**2 !Bug fixed here, should be squared
+      v2esc_modified = v2esc*(1 - rsum/ (planet_sun_separation * (THIRD * m(itarg) / mcen)**THIRD   ) )
+      v2gm = v2esc_modified * (C1 * zeta * fac  +  C2 * zeta  +  C3 * fac  +  C4)**2 !Bug fixed here, should be squared
 !
       write (23,'(a,f9.4)')   '  Mp / Mt:          ', m(iproj) / m(itarg)
       write (23,'(a,f9.4)')   '  b  / Rtarg:       ', b / rad(itarg)
       write (23,'(a,f9.4)')   '  Vimp / Vesc:      ', sqrt(v2imp / v2esc)
       write (23,'(a,f9.4)')   '  Vgm  / Vesc:      ', sqrt(v2gm  / v2esc)
       write (23,'(a,f9.4)')   '  dist from star:   ', planet_sun_separation/AU
+      write (23,'(a,f9.4)')   '  Vesc_mod / Vesc:  ', sqrt(v2esc_modified / v2esc)
       write (23,*)
 !      write (23,'(a,f9.4)')   '  M1 / Msum:        ', m1 / msum
 !      write (23,'(a,f9.4)')   '  M1 / Mtarg:       ', m1 / m(itarg)
@@ -2732,7 +2734,10 @@
 !               write(*,*) m(itarg)
 !            endif
 ! Simple merger
-      if (v2imp <= v2esc) then
+!      if (v2imp <= v2esc) then
+
+               !modify the escape velocity by the Hill radius
+       if (v2imp <= v2esc_modified) then
 !  If it's really a simple merger, then these are the values that actually occur, 
 !    not the ratios that were originally written and are commented out above.
          write (23,'(a,f9.4)')   '  M1 / Msum:        ', 1.0

@@ -2708,7 +2708,8 @@
 !..boundary between graze & merge and hit & run (Genda et al. 2012)
       zeta = ((m(itarg)  -  m(iproj)) / msum)**2
       fac = (ONE  -  b / rsum)**2.5_R8
-      v2gm = v2esc * (C1 * zeta * fac  +  C2 * zeta  +  C3 * fac  +  C4)**2 !Bug fixed here, should be squared
+      v2esc_modified = v2esc*(1 - rsum/ (planet_sun_separation * (THIRD * m(itarg) / mcen)**THIRD   ) )
+      v2gm = v2esc_modified * (C1 * zeta * fac  +  C2 * zeta  +  C3 * fac  +  C4)**2 !Bug fixed here, should be squared
 !
       write (23,'(a,f9.4)')   '  Mp / Mt:          ', m(iproj) / m(itarg)
       write (23,'(a,f9.4)')   '  b  / Rtarg:       ', b / rad(itarg)
@@ -2722,20 +2723,19 @@
 !
 
 !           if (time/YEAR< 0.33315168377836112.and.time/YEAR> 0.33313168377836112) then
-               write(*,*) name(iproj)
-               write(*,*) x(:,iproj)
-               write(*,*) v(:,iproj)
-               write(*,*) m(iproj)
-               write(*,*) name(itarg)
-               write(*,*) x(:,itarg)
-               write(*,*) v(:,itarg)
-               write(*,*) m(itarg)
+!               write(*,*) name(iproj)
+!               write(*,*) x(:,iproj)
+!               write(*,*) v(:,iproj)
+!               write(*,*) m(iproj)
+!               write(*,*) name(itarg)
+!               write(*,*) x(:,itarg)
+!               write(*,*) v(:,itarg)
+!               write(*,*) m(itarg)
 !            endif
 ! Simple merger
 !      if (v2imp <= v2esc) then
 
                !modify the escape velocity by the Hill radius
-       v2esc_modified = v2esc*(1 - rsum/ (planet_sun_separation * (THIRD * m(itarg) / mcen)**THIRD   ) )
        if (v2imp <= v2esc_modified) then
 !  If it's really a simple merger, then these are the values that actually occur, 
 !    not the ratios that were originally written and are commented out above.
@@ -4061,29 +4061,29 @@
       v(:,1:n) = v(:,1:n)  +  dtby2 * a(:,1:n)
       time = time  +  dt
 
-      if (time/YEAR> 9.72813141683673692E-002.and.time/YEAR< 0.12860780287472727) then
-         write(*,*) "-------------------"
-         write(*,*) "time: ", time/YEAR
-         write(*,*) name(88)
-         write(*,*) x(:,88)
-         write(*,*) v(:,88)
-         write(*,*) m(88)
-         write(*,*) name(87)
-         write(*,*) x(:,87)
-         write(*,*) v(:,87)
-         write(*,*) m(87)
-         write(*,*) "----"
-         write(*,*) name(56)
-         write(*,*) x(:,56)
-         write(*,*) v(:,56)
-         write(*,*) m(56)
-         write(*,*) name(54)
-         write(*,*) x(:,54)
-         write(*,*) v(:,54)
-         write(*,*) m(54)
-         write(*,*) "--endeth-----"
+!      if (time/YEAR> 9.72813141683673692E-002.and.time/YEAR< 0.12860780287472727) then
+!         write(*,*) "-------------------"
+!         write(*,*) "time: ", time/YEAR
+!         write(*,*) name(88)
+!         write(*,*) x(:,88)
+!         write(*,*) v(:,88)
+!         write(*,*) m(88)
+!         write(*,*) name(87)
+!         write(*,*) x(:,87)
+!         write(*,*) v(:,87)
+!         write(*,*) m(87)
+!         write(*,*) "----"
+!         write(*,*) name(56)
+!         write(*,*) x(:,56)
+!         write(*,*) v(:,56)
+!         write(*,*) m(56)
+!         write(*,*) name(54)
+!         write(*,*) x(:,54)
+!         write(*,*) v(:,54)
+!         write(*,*) m(54)
+!         write(*,*) "--endeth-----"
          
-      endif
+!      endif
 
 
 !
