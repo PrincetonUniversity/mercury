@@ -475,7 +475,7 @@ def collision_info_extractor(filename):
                     print "************************************************************************"
                     print ""; print ""; print ""; print ""; print ""; print ""; print ""; print ""
                     reported_no_radius = True
-                if (radius == None and reported_no_vescmodifed == False):
+                if (radius == None and reported_no_vescmodified == False):
                     print ""; print ""; print ""; print ""; print ""; print ""; print ""; print ""
                     print "************************************************************************"
                     print "        Backwards version, no radius recorded"
