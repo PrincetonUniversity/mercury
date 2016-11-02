@@ -25,7 +25,7 @@ c rho  = density used throughout, for use in mce_coll, cgs
       integer NMAX, CMAX, NMESS, NFILES
       real*8 HUGE, cstar, mubar, rho1_cgs, G__, beta, rho_forall
 c
-      parameter (NMAX = 1000000)
+      parameter (NMAX = 5000000)
       parameter (CMAX = 50)
       parameter (NMESS = 200)
       parameter (HUGE = 9.9d29)

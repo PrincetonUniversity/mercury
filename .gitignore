@@ -23,6 +23,8 @@ mercury7_qstarmod
 mercury7_qstarmod_nocondor
 mercury7_scottmod
 mercury7_scottmod_nocondor
+mercury7_notidal
+mercury7_notidal_nocondor
 close6
 frag_f90
 *~
