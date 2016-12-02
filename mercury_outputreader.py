@@ -406,14 +406,17 @@ def collision_info_extractor(filename):
                         names.append(info[1])
                         masses.append(float(info[3]))
                         info = f.next().split()
-                        if info[0] == "Remnant:":
-                            no_second_remnant = False
-                            if float(info[3]) < 1e-20: #If the mass of the second remnant is zero
-                                second_mass_matters = False #Don't count this towards total number of final bodies
+                        if info:
+                            if info[0] == "Remnant:":
+                                no_second_remnant = False
+                                if float(info[3]) < 1e-20: #If the mass of the second remnant is zero
+                                    second_mass_matters = False #Don't count this towards total number of final bodies
+                                else:
+                                    second_mass_matters = True
+                                    names.append(info[1])
+                                    masses.append(float(info[3]))
                             else:
-                                second_mass_matters = True
-                                names.append(info[1])
-                                masses.append(float(info[3]))
+                                no_second_remnant = True
                         else:
                             no_second_remnant = True
                     else:
