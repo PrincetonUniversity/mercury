@@ -299,9 +299,10 @@ def numberofbodies_functime_reader(filename):
         if line[0:21] == " Number of big bodies":
             temp = line.split()
             if len(temp) != 10:
-                raise TypeError("The number of bodies line doesn't have the right number of words/numbers")
+                print temp
+                raise TypeError("The number of bodies line doesn't have the right number of words/numbers " + str(len(temp)) )
             toreturn.append( numberofbodies_functime(float(temp[6]),int(temp[9])) )
-        elif line[0:25] == " Num. bodies inside Roche":
+        elif line[0:26] == "  Num. bodies inside Roche":
             temp = line.split()
             if len(temp) != 14:
                 raise TypeError("The number of bodies in/outside Roche line doesn't have the right number of words/numbers")
