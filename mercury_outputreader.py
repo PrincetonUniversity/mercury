@@ -584,7 +584,7 @@ def plot_aei_multiple(time_values_to_use,times_list,aeis_list,parameter_1,parame
 
     figuresizex = 8.0
     figuresizey = 8.0
-    lowerx = .082
+    lowerx = .091
     lowery = .093
     upperx = .97
     uppery = .97
@@ -816,6 +816,119 @@ def plot_collision_scatterplot(filename="info.out",whichones=None,title="",colli
     return fig
 
 
+def plot_collision_scatterplot_simplifiedcollisionclassification(filename="info.out",whichones=None,title="",collision_info=None,outside_Roche=False):              
+    """This function will take a info.out file and plot up a scatter plot of all the
+    collisions in the v/vesc and r/R_target plane.  It returns this figure.
+    This is the same as plot_collision_scatterplot, except it takes a simplified collision classification scheme 
+    like in the figures for the paper.  It also can differentiate between collisions that took place inside and outside 
+    the Roche radius."""
+
+    markers_touse = ("o","s","D","^")
+    colors_touse = ('#f4320c','#0d75f8','gray','#fcc006')#,'#fac205','goldenrod')
+
+    if collision_info == None:
+        collisions, central_collisions, ejections = collision_info_extractor(filename)
+    else:
+        collisions = collision_info[0]
+        central_collisions = collision_info[1]
+        ejections = collision_info[2]
+    print "Number of central collisions:   " + str(len(central_collisions))
+    print "Number of ejections:            " + str(len(ejections))
+    print " "
+    print "Number of collisions:           " + str(len(collisions))
+
+    if outside_Roche == False:
+        radius_to_care_about = 0.
+    else:
+        radius_to_care_about = 0.0088781786
+
+
+    merger = []
+    effective_merger = []
+    grow   = []
+    erode  = []
+    hitandrun = []
+
+    if whichones == None:
+        for i in range(len(collisions)):
+#            if collisions[i].classification in (collision_type.SIMPLE_MERGER, collision_type.EFFECTIVE_MERGER, collision_type.GRAZE_MERGER):
+#                merger.append(collisions[i])
+            if collisions[i].classification == collision_type.SIMPLE_MERGER:
+                merger.append(collisions[i])
+            elif collisions[i].classification == collision_type.EFFECTIVE_MERGER:
+                effective_merger.append(collisions[i])
+            elif collisions[i].classification ==  collision_type.GRAZE_MERGER:
+                merger.append(collisions[i])
+            elif collisions[i].classification == collision_type.HIT_AND_RUN:
+                hitandrun.append(collisions[i])
+            elif collisions[i].masslargestremnant_mtarget_ratio >= 1.0:
+                grow.append(collisions[i])
+            elif collisions[i].masslargestremnant_mtarget_ratio < 1.0:
+                erode.append(collisions[i])
+            elif np.isnan(collisions[i].masslargestremnant_mtarget_ratio):
+                print "Warning!  Warning!  Had a NaN mass ratio"
+                continue
+            else:
+                print collisions[i].classification
+                print collisions[i].target_name
+                print collisions[i].projectile_name
+                print collisions[i].time
+                raise TypeError("I don't know what to do with this body, as far as its collision is concerned, body " + str(i))
+
+    else:
+        for i in range(len(collisions)):
+            if (collisions[i].target_name in whichones or collisions[i].projectile_name in whichones) and (collisions[i].radius > radius_to_care_about): ###Just the final bodies
+                if collisions[i].classification == outputreader.collision_type.SIMPLE_MERGER:
+                    merger.append(collisions[i])
+                elif collisions[i].classification == outputreader.collision_type.EFFECTIVE_MERGER:
+                    effective_merger.append(collisions[i])
+                elif collisions[i].classification ==  outputreader.collision_type.GRAZE_MERGER:
+                    merger.append(collisions[i])
+                elif collisions[i].classification == outputreader.collision_type.HIT_AND_RUN:
+                    hitandrun.append(collisions[i])
+            #if collisions[i].number_of_fragments == 0:
+            #    hitandrun_nofrag.append(collisions[i])
+            #else:
+            #    hitandrun_frag.append(collisions[i])
+                elif collisions[i].masslargestremnant_mtarget_ratio >= 1.0:
+                    grow.append(collisions[i])
+                elif collisions[i].masslargestremnant_mtarget_ratio < 1.0:
+                    erode.append(collisions[i])
+                elif np.isnan(collisions[i].masslargestremnant_mtarget_ratio):
+                    print "Warning!  Warning!  Had a NaN mass ratio"
+                    continue
+                else:
+                    print collisions[i].classification
+                    print collisions[i].target_name
+                    print collisions[i].projectile_name
+                    print collisions[i].time
+                    raise RuntimeError("I don't know what to do with this body, as far as its collision is concerned, body " + str(i))
+
+
+
+
+
+    fig = pp.figure()
+
+    print "percentage that are perfect mergers: " + str( float(len(merger))/float(len(collisions)) * 100.0) + " %"
+
+    pp.scatter([ item.B_Rtarg_ratio for item in erode],  [item.vimpact_vescape_ratio for item in erode],marker=markers_touse[2],color=colors_touse[2],s=35,label="erode")
+    pp.scatter([ item.B_Rtarg_ratio for item in hitandrun], [item.vimpact_vescape_ratio for item in hitandrun],marker=markers_touse[3],color=colors_touse[3],s=35,label="hit & run")
+    pp.scatter([ item.B_Rtarg_ratio for item in merger], [ item.vimpact_vescape_ratio for item in merger],marker=markers_touse[0],color=colors_touse[0],s=35,label="merger")
+    pp.scatter([ item.B_Rtarg_ratio for item in merger], [ item.vimpact_vescape_ratio for item in merger],marker=markers_touse[0],color=colors_touse[0],s=35,facecolor='white',label="eff. merger")
+    pp.scatter([ item.B_Rtarg_ratio for item in grow],  [item.vimpact_vescape_ratio for item in grow],marker=markers_touse[1],color=colors_touse[1],s=35,label="grow")
+
+    pp.axhline(y=1,color='black',linestyle='--')
+    pp.xlabel("b/R$_{\mathrm{target} }$",size=16)
+    pp.ylabel("$v/v_{esc}$",size=16)
+    pp.ylim(bottom=0)
+    pp.xlim(left=0)
+    pp.legend(loc="best")
+    pp.title(title)
+
+    return fig
+
+
 
 
 
@@ -826,43 +939,53 @@ def plot_number_func_time(filename="stdout.out",xscale='log'):
     in the code."""
     
     fig = pp.figure()
-    (num_func_time,roche_num_func_time) = numberofbodies_functime_reader(filename)
+    (num_func_time,split_over_roche) = numberofbodies_functime_reader(filename)
     t = []
     num = []
     for i in range(len(num_func_time)):
         t.append(num_func_time[i].time)
         num.append(num_func_time[i].numberbodies)
 
+    t_roche = []
+    num_inside = []
+    num_outside = []
+    for k in range(len(split_over_roche)):
+        t_roche.append(split_over_roche[k].time/1000.0)
+        num_inside.append(split_over_roche[k].number_inside_roche)
+        num_outside.append(split_over_roche[k].number_outside_roche)
+
     #print t
     if t[-1] > 1e9:
         unit = "Gyr"
-        t = np.divide(t,1e9)
+        divide_by_number = 1e9
     elif t[-1] > 1e6:
         unit = "Myr"
-        t = np.divide(t,1e6)
+        divide_by_number = 1e6
     elif t[-1] > 1e3:
         unit = "Kyr"
-        t = np.divide(t,1e3)
+        divide_by_number = 1e3
     else:
         unit = "years"
+        divide_by_number = 1.
 
-    pp.step(t,num,where='post',lw=2.2,label='all bodies')
+    pp.step(np.divide(t,divide_by_number),num,where='post',lw=2.2,label='all bodies')
 
     del t
     del num
 
-    if roche_num_func_time: #If there is information for number of bodies inside and outside roche
-        t = []
+    if split_over_roche: #If there is information for number of bodies inside and outside roche
+        t_roche = []
         num_inside = []
         num_outside = []
-        for i in range(len(roche_num_func_time)):
-            t.append(roche_num_func_time[i].time)
-            num_inside.append(roche_num_func_time[i].number_inside_roche)
-            num_outside.append(roche_num_func_time[i].number_outside_roche)
+        for k in range(len(split_over_roche)):
+            t_roche.append(split_over_roche[k].time/1000.0)
+            num_inside.append(split_over_roche[k].number_inside_roche)
+            num_outside.append(split_over_roche[k].number_outside_roche)
 
-        pp.step(t,num_outside,where='post',lw=1.5,label='outside Roche')
-        pp.step(t,num_inside,where='post',lw=1.5,label='inside Roche')
-        pp.legend(loc='best')
+        pp.step(np.divide(t_roche,divide_by_number),num_outside,where='post',lw=1.5,label='outside Roche')
+        pp.step(np.divide(t_roche,divide_by_number),num_inside,where='post',lw=1.5,label='inside Roche')
+
+    pp.legend(loc='best')
 
     pp.xlabel("Time (" + unit + ")")
     if xscale == 'log':
@@ -940,7 +1063,27 @@ def plot_all_aeis_here(times=(0.,3e6,10e6,30e6,60e6,300e6),a_limits=None,e_limit
 
 
 
+def plot_mass_func_time(names_of_bodies,initial_body_mass=5.015010e-08,final_time=3e5,file_path="./info.out"):
+    """
+    This plots the mass of selected bodies as a function of time.  It returns a figure object, which can then
+    be made into an image a saved.
+    """
+    fig = pp.figure
 
+    masses, times = mass_func_time_by_collisions(names_of_bodies,initial_body_mass,final_time,filename=file_path)
+
+    divide_by = 1.0
+    for i in range(len(masses)):
+        fig.step(np.divide(times_1[i],divide_by),np.divide(masses_1[i],earthmass_converter),where='post',color='blue')
+
+    fig.set_xlabel("Time (years)")
+    fig.set_ylabel('Mass (M$_\oplus$)',size=18)
+    fig.set_xscale(u'log')
+    fig.set_xlim(left=1e-1,right=final_time)
+    top_val = 0.6
+    fig.set_ylim(top=top_val)
+
+    return fig
 
 
 

@@ -85,6 +85,7 @@ def plot_mutual_hill_radii(planets,central_object_mass=1.):
 
     (stuff1, stuff2) = mutual_hill_radii_checker(planets)
 
+    pp.plot( (0.008877,0.008877),(0,50),linestyle='--',color='black')
 
     pp.scatter(stuff2,stuff1)
     pp.xlabel("Semi-major axis (AU), defined to be between the planets")
