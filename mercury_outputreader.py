@@ -824,6 +824,7 @@ def plot_collision_scatterplot_simplifiedcollisionclassification(filename="info.
     the Roche radius."""
 
     markers_touse = ("o","s","D","^")
+    markersize = 4
     colors_touse = ('#f4320c','#0d75f8','gray','#fcc006')#,'#fac205','goldenrod')
 
     if collision_info == None:
@@ -878,13 +879,13 @@ def plot_collision_scatterplot_simplifiedcollisionclassification(filename="info.
     else:
         for i in range(len(collisions)):
             if (collisions[i].target_name in whichones or collisions[i].projectile_name in whichones) and (collisions[i].radius > radius_to_care_about): ###Just the final bodies
-                if collisions[i].classification == outputreader.collision_type.SIMPLE_MERGER:
+                if collisions[i].classification == collision_type.SIMPLE_MERGER:
                     merger.append(collisions[i])
-                elif collisions[i].classification == outputreader.collision_type.EFFECTIVE_MERGER:
+                elif collisions[i].classification == collision_type.EFFECTIVE_MERGER:
                     effective_merger.append(collisions[i])
-                elif collisions[i].classification ==  outputreader.collision_type.GRAZE_MERGER:
+                elif collisions[i].classification ==  collision_type.GRAZE_MERGER:
                     merger.append(collisions[i])
-                elif collisions[i].classification == outputreader.collision_type.HIT_AND_RUN:
+                elif collisions[i].classification == collision_type.HIT_AND_RUN:
                     hitandrun.append(collisions[i])
             #if collisions[i].number_of_fragments == 0:
             #    hitandrun_nofrag.append(collisions[i])
@@ -912,11 +913,11 @@ def plot_collision_scatterplot_simplifiedcollisionclassification(filename="info.
 
     print "percentage that are perfect mergers: " + str( float(len(merger))/float(len(collisions)) * 100.0) + " %"
 
-    pp.scatter([ item.B_Rtarg_ratio for item in erode],  [item.vimpact_vescape_ratio for item in erode],marker=markers_touse[2],color=colors_touse[2],s=35,label="erode")
-    pp.scatter([ item.B_Rtarg_ratio for item in hitandrun], [item.vimpact_vescape_ratio for item in hitandrun],marker=markers_touse[3],color=colors_touse[3],s=35,label="hit & run")
-    pp.scatter([ item.B_Rtarg_ratio for item in merger], [ item.vimpact_vescape_ratio for item in merger],marker=markers_touse[0],color=colors_touse[0],s=35,label="merger")
-    pp.scatter([ item.B_Rtarg_ratio for item in merger], [ item.vimpact_vescape_ratio for item in merger],marker=markers_touse[0],color=colors_touse[0],s=35,facecolor='white',label="eff. merger")
-    pp.scatter([ item.B_Rtarg_ratio for item in grow],  [item.vimpact_vescape_ratio for item in grow],marker=markers_touse[1],color=colors_touse[1],s=35,label="grow")
+    pp.scatter([ item.B_Rtarg_ratio for item in erode],  [item.vimpact_vescape_ratio for item in erode],marker=markers_touse[2],color=colors_touse[2],s=markersize,label="erode")
+    pp.scatter([ item.B_Rtarg_ratio for item in hitandrun], [item.vimpact_vescape_ratio for item in hitandrun],marker=markers_touse[3],color=colors_touse[3],s=markersize,label="hit & run")
+    pp.scatter([ item.B_Rtarg_ratio for item in merger], [ item.vimpact_vescape_ratio for item in merger],marker=markers_touse[0],color=colors_touse[0],s=(markersize+8),label="merger")
+    pp.scatter([ item.B_Rtarg_ratio for item in merger], [ item.vimpact_vescape_ratio for item in merger],marker=markers_touse[0],color=colors_touse[0],s=(markersize+8),facecolor='white',label="eff. merger")
+    pp.scatter([ item.B_Rtarg_ratio for item in grow],  [item.vimpact_vescape_ratio for item in grow],marker=markers_touse[1],color=colors_touse[1],s=markersize,label="grow")
 
     pp.axhline(y=1,color='black',linestyle='--')
     pp.xlabel("b/R$_{\mathrm{target} }$",size=16)
@@ -950,7 +951,7 @@ def plot_number_func_time(filename="stdout.out",xscale='log'):
     num_inside = []
     num_outside = []
     for k in range(len(split_over_roche)):
-        t_roche.append(split_over_roche[k].time/1000.0)
+        t_roche.append(split_over_roche[k].time)
         num_inside.append(split_over_roche[k].number_inside_roche)
         num_outside.append(split_over_roche[k].number_outside_roche)
 
@@ -1068,20 +1069,21 @@ def plot_mass_func_time(names_of_bodies,initial_body_mass=5.015010e-08,final_tim
     This plots the mass of selected bodies as a function of time.  It returns a figure object, which can then
     be made into an image a saved.
     """
-    fig = pp.figure
+    fig = pp.figure()
+    earthmass_converter = 3.0025e-6
 
     masses, times = mass_func_time_by_collisions(names_of_bodies,initial_body_mass,final_time,filename=file_path)
 
     divide_by = 1.0
     for i in range(len(masses)):
-        fig.step(np.divide(times_1[i],divide_by),np.divide(masses_1[i],earthmass_converter),where='post',color='blue')
+        pp.step(np.divide(times[i],divide_by),np.divide(masses[i],earthmass_converter),where='post',color='blue')
 
-    fig.set_xlabel("Time (years)")
-    fig.set_ylabel('Mass (M$_\oplus$)',size=18)
-    fig.set_xscale(u'log')
-    fig.set_xlim(left=1e-1,right=final_time)
+    pp.xlabel("Time (years)")
+    pp.ylabel('Mass (M$_\oplus$)',size=18)
+    pp.xscale(u'log')
+    pp.xlim(left=1e-1,right=final_time)
     top_val = 0.6
-    fig.set_ylim(top=top_val)
+    pp.ylim(top=top_val)
 
     return fig
 
