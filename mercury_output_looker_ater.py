@@ -49,6 +49,7 @@ def mutual_hill_radii_checker(planets,central_object_mass=1.):
         masses = map(planets.mass.__getitem__, indexes)
         ees    = map(planets.e.__getitem__, indexes)
 
+        print "aes, masses, and ees:"
         print aes
         print masses
         print ees
@@ -56,6 +57,11 @@ def mutual_hill_radii_checker(planets,central_object_mass=1.):
     else:
         aes = planets.a
         masses = planets.mass
+
+        print "aes, masses, and ees:"
+        print aes
+        print masses
+        print ees
 
     output1 = []
     output2 = []

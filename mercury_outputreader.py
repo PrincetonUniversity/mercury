@@ -381,6 +381,10 @@ def collision_info_extractor(filename):
                 if info[1] == "simply" and info[2] == "merged":
                     classification = collision_type.SIMPLE_MERGER
                     number_of_fragments = 0
+                elif info[1] == 'merged' and info[2] == 'with':
+                    #classify this as a simple merger.  It's a merger in a run that has no fragmentation allowed.
+                    classification = collision_type.SIMPLE_MERGER
+                    number_of_fragments = 0
                 elif info[1] == 'effectively' and info[2] == 'merged':
                     classification = collision_type.EFFECTIVE_MERGER
                     number_of_fragments = 0
@@ -452,10 +456,14 @@ def collision_info_extractor(filename):
                         info=f.next().split()
                         if not info: #If list is empty
                             break
-                if second_mass_matters == True:
-                    number_of_fragments = f_num
-                else:
-                    number_of_fragments = f_num - 1
+                try: 
+                    if second_mass_matters == True:
+                        number_of_fragments = f_num
+                    else:
+                        number_of_fragments = f_num - 1
+                except UnboundLocalError:  ##Don't know if this works yet, if it is true.  I don't want to break my code finding out
+                    number_of_fragments = 0 #Don't know if this will give the right number.
+                
 
                 if number_of_fragments < -1: #If somehow the number is very negative
                     print target_name
