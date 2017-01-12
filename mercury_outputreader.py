@@ -987,7 +987,7 @@ def plot_number_func_time(filename="stdout.out",xscale='log'):
         num_inside = []
         num_outside = []
         for k in range(len(split_over_roche)):
-            t_roche.append(split_over_roche[k].time/1000.0)
+            t_roche.append(split_over_roche[k].time)
             num_inside.append(split_over_roche[k].number_inside_roche)
             num_outside.append(split_over_roche[k].number_outside_roche)
 
