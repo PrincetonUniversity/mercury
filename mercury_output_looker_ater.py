@@ -28,6 +28,10 @@ def mutual_hill_radii_checker(planets,central_object_mass=1.):
     Returned is a tuple: first element, list of delta a/mutual hill radii.
        Second element, list of "mutual semimajor axis", the average of the 
        semimajoraxes of the two bodies.
+       Third element, list of delta a'/mutual hill radii, where delta a' is the
+       separation between apoastron of inner object and periastron of outer object.
+       Fourth element, the average of the apoastron of inner object and 
+       periastron of outer object
     """
     if not isinstance(planets, outputreader.aei_singletime):#If not an aei_info object
         raise TypeError("I wasn't given an aei_singletime instance!")
@@ -65,15 +69,20 @@ def mutual_hill_radii_checker(planets,central_object_mass=1.):
 
     output1 = []
     output2 = []
+    output3 = []
+    output4 = []
 
     for i in range(len(planets.a)-1):
         print i
         delta_a = aes[i+1] - aes[i]
+        delta_aprime = aes[i+1]*(1-ees[i+1]) - aes[i]*(1+ees[i])
         mutual_hill_radius = 0.5 * (aes[i+1] + aes[i]) * np.power( (masses[i+1] + masses[i])/ (3.0*central_object_mass) , 1./3.)
         output1.append(delta_a/mutual_hill_radius)
         output2.append( (aes[i+1] + aes[i])/2.0 )
+        output3.append(delta_aprime/mutual_hill_radius)
+        output4.append( ( aes[i+1]*(1-ees[i+1]) + aes[i]*(1+ees[i]) )/2.0 )
 
-    return (output1, output2)
+    return (output1, output2, output3, output4)
 
 
 def plot_mutual_hill_radii(planets,central_object_mass=1.):

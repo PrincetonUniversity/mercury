@@ -941,7 +941,7 @@ def plot_collision_scatterplot_simplifiedcollisionclassification(filename="info.
 
 
 
-def plot_number_func_time(filename="stdout.out",xscale='log'):
+def plot_number_func_time(filename="stdout.out",xscale='log',xlim_=None):
     """This will plot the number of big bodies as a function of time,
     as read from a specified file name.  The default file name is stdout.out,
     since it is to the stdout that the number of bodies is written 
@@ -995,6 +995,9 @@ def plot_number_func_time(filename="stdout.out",xscale='log'):
         pp.step(np.divide(t_roche,divide_by_number),num_inside,where='post',lw=1.5,label='inside Roche')
 
     pp.legend(loc='best')
+
+    if xlim_ != None:
+        pp.xlim(np.divide(xlim_,divide_by_number))
 
     pp.xlabel("Time (" + unit + ")")
     if xscale == 'log':
