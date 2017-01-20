@@ -27,6 +27,8 @@ mercury7_notidal
 mercury7_notidal_nocondor
 mercury7_novescmod
 mercury7_novescmod_nocondor
+mercury7_maxfragnum
+mercury7_nocondor_maxfragnum
 close6
 frag_f90
 *~
