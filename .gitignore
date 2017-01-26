@@ -29,6 +29,8 @@ mercury7_novescmod
 mercury7_novescmod_nocondor
 mercury7_maxfragnum
 mercury7_nocondor_maxfragnum
+mercury7_multcollisioncounter
+mercury7_multcollisioncounter_nocondor
 close6
 frag_f90
 *~
