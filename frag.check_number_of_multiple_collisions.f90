@@ -2476,7 +2476,7 @@
                   !We have a multiple collision, give out the information
                   open (35, file="multiplecollisions.out", access='append')
                   temp_dotproduct = dot_product(tmp0 * x0(:,i)  +  tmp1 * x1(:,i), tmp0 * x0(:,i)  +  tmp1 * x1(:,i))
-                  write (35,*) name(itarg), name(iproj), whichones, m(i)/MSUN, m(j)/MSUN, (tmin + t)/YEAR, sqrt(temp_dotproduct)/AU
+                  write (35,*) name(itarg),'   ', name(iproj), whichones, m(i)/MSUN, m(j)/MSUN, (tmin + t)/YEAR, sqrt(temp_dotproduct)/AU
                   close (35)
                end if
 
