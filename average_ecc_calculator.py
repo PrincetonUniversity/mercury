@@ -1,25 +1,24 @@
 import numpy as np
 import sys
 import os
-def tail(f, n, offset=0): # Taken from http://stackoverflow.com/questions/136168/get-last-n-lines-of-a-file-with-python-similar-to-tail
-  stdin,stdout = os.popen2("tail -n "+n+offset+" "+f)
+def tail(f, n): # Taken from http://stackoverflow.com/questions/136168/get-last-n-lines-of-a-file-with-python-similar-to-tail
+  stdin,stdout = os.popen2("tail -n " + str(n) + " " + f)
   stdin.close()
   lines = stdout.readlines(); stdout.close()
-  return lines[:,-offset]
+  return lines#[:,-offset]
 
 path = "./"
 
 
 with open("final_bodies.txt","r") as f:
-    names_of_final_bodies = f.readlines()
+    names_of_final_bodies = f.read().splitlines()
 
-print "Number of final bodies: " + len(names_of_final_bodies)
+print "Number of final bodies: " + str(len(names_of_final_bodies))
 
 final_bodies_info = []
 
 for i in range(len(names_of_final_bodies)):
-    with open(names_of_final_bodies[i] + ".aei","r"):
-        last_line = tail(f, 1)
+    last_line = tail(names_of_final_bodies[i]+".aei", 1)[0]
     last_line_split = last_line.split()
 
     if (float(last_line_split[0]) - 3e5) > 0.0001:
