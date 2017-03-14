@@ -125,7 +125,7 @@ class numberofbodies_outsideroche_functime:
         self.number_outside_roche = number_outside_roche_
 
 
-def aei_aggregator(path_="./",just_original_bodies=False):
+def aei_aggregator(path_="./",just_original_bodies=False,which_bodies=None):
     """This reads in all the *.aei files in the given path
     and returns a tuple, the first element of which is the names of all the bodies
     and the second element of which is a list of aei_info instances.
@@ -133,10 +133,15 @@ def aei_aggregator(path_="./",just_original_bodies=False):
     set just_original_bodies=True"""
     if not isinstance(path_, str):
         raise TypeError("The given path is not a string!")
+    if just_original_bodies == True and which_bodies != None:
+        raise RuntimeError("Got both just_original_bodies = True and which_bodies not equal to none, can't do both!")
     filelist, body_names = get_files("aei",path=path_)
+    
     if just_original_bodies == True:
         #filelist = [item in filelist if 'F' not in item]
         filelist[:], body_names[:] = zip(*((x, y) for (x, y) in zip(filelist, body_names) if 'F' not in x))
+    if which_bodies != None:
+        filelist[:], body_names[:] = zip(*((x, y) for (x, y) in zip(filelist, body_names) if any(word in x for word in which_bodies) ) )
         
     
     files_with_no_info = 0
