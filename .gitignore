@@ -31,6 +31,8 @@ mercury7_maxfragnum
 mercury7_nocondor_maxfragnum
 mercury7_multcollisioncounter
 mercury7_multcollisioncounter_nocondor
+mercury7_removenamereducer
+mercury7_nocondor_removenamereducer
 close6
 frag_f90
 *~

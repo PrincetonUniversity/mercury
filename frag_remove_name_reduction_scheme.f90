@@ -2671,7 +2671,7 @@
     integer(I4)::itarg,iproj
     real(R8)::xrel(3),vrel(3),xcom(3),vcom(3),rsum,msum
     real(R8)::b,v2imp,m1,m2,v2esc,v2gm,zeta,fac
-    real(R8)::planet_sun_separation
+    real(R8)::planet_sun_separation, v2esc_modified
     character(25)::text
 !------------------------------------------------------------------------------
 ! Write message to info file
@@ -2708,31 +2708,44 @@
 !..boundary between graze & merge and hit & run (Genda et al. 2012)
       zeta = ((m(itarg)  -  m(iproj)) / msum)**2
       fac = (ONE  -  b / rsum)**2.5_R8
-      v2gm = v2esc * (C1 * zeta * fac  +  C2 * zeta  +  C3 * fac  +  C4)**2 !Bug fixed here, should be squared
+      v2esc_modified = v2esc*(1 - rsum/ (planet_sun_separation * (THIRD * m(itarg) / mcen)**THIRD   ) )
+      v2gm = v2esc_modified * (C1 * zeta * fac  +  C2 * zeta  +  C3 * fac  +  C4)**2 !Bug fixed here, should be squared
 !
       write (23,'(a,f9.4)')   '  Mp / Mt:          ', m(iproj) / m(itarg)
       write (23,'(a,f9.4)')   '  b  / Rtarg:       ', b / rad(itarg)
       write (23,'(a,f9.4)')   '  Vimp / Vesc:      ', sqrt(v2imp / v2esc)
-      write (23,'(a,f9.4)')   '  Vgm  / Vesc:      ', sqrt(v2gm  / v2esc)
+      if (v2gm > 0.0) then
+         write (23,'(a,f9.4)')   '  Vgm  / Vesc:      ', sqrt(v2gm  / v2esc)
+      else
+         write (23,'(a,f9.4)')   '  Vgm  / Vesc:      ', 0.0
+      end if
       write (23,'(a,f9.4)')   '  dist from star:   ', planet_sun_separation/AU
+      if (v2esc_modified > 0.0) then
+         write (23,'(a,f9.4)')   '  Vesc_mod / Vesc:  ', sqrt(v2esc_modified / v2esc)
+      else
+         write (23,'(a,f9.4)')   '  Vesc_mod / Vesc:  ', 0.0
+      end if
       write (23,*)
 !      write (23,'(a,f9.4)')   '  M1 / Msum:        ', m1 / msum
 !      write (23,'(a,f9.4)')   '  M1 / Mtarg:       ', m1 / m(itarg)
 !      write (23,'(a,f9.4)')   '  Mfrag / Mfragmin: ', (msum - m1) / mfrag_min
 !
 
-!            if (time/YEAR< 0.33315168377836112.and.time/YEAR> 0.33313168377836112) then
-               write(*,*) name(iproj)
-               write(*,*) x(:,iproj)
-               write(*,*) v(:,iproj)
-               write(*,*) m(iproj)
-               write(*,*) name(itarg)
-               write(*,*) x(:,itarg)
-               write(*,*) v(:,itarg)
-               write(*,*) m(itarg)
+!           if (time/YEAR< 0.33315168377836112.and.time/YEAR> 0.33313168377836112) then
+!               write(*,*) name(iproj)
+!               write(*,*) x(:,iproj)
+!               write(*,*) v(:,iproj)
+!               write(*,*) m(iproj)
+!               write(*,*) name(itarg)
+!               write(*,*) x(:,itarg)
+!               write(*,*) v(:,itarg)
+!               write(*,*) m(itarg)
 !            endif
 ! Simple merger
-      if (v2imp <= v2esc) then
+!      if (v2imp <= v2esc) then
+
+               !modify the escape velocity by the Hill radius
+       if (v2imp <= v2esc_modified) then
 !  If it's really a simple merger, then these are the values that actually occur, 
 !    not the ratios that were originally written and are commented out above.
          write (23,'(a,f9.4)')   '  M1 / Msum:        ', 1.0
@@ -2765,12 +2778,8 @@
             call write_coll_text (t,name(itarg),name(iproj),text,25)
             m1 = max(m1, mfrag_min)
             m2 = ZERO
-
-
-               
             call fragment_bodies (itarg,iproj,m1,m2,n,nbig,m,x,v,s,ngf,rho, &
               rce_hill,rad,rcrit,status,index,name)
-
           end if
 !
 ! GRAZING REGIME
@@ -2947,24 +2956,6 @@
       write (23,'(3a,es11.4)') '   Fragment: ',name(n), '  m=', m(n) / MSUN
     end do
 !
-!    write (23,*)
-!    write (23,*) 'Initial bodies'
-!    write (23,123) name(itarg), (x(1,itarg) - xcom(1)) / AU, &
-!      (x(2,itarg) - xcom(2)) / AU, &
-!      (x(3,itarg) - xcom(3)) / AU, &
-!      (v(1,itarg) - vcom(1)) / AU * DAY, &
-!      (v(2,itarg) - vcom(2)) / AU * DAY, &
-!      (v(3,itarg) - vcom(3)) / AU * DAY, &
-!      m(itarg) / MSUN * 1d7
-!    write (23,123) name(iproj), (x(1,iproj) - xcom(1)) / AU, &
-!      (x(2,iproj) - xcom(2)) / AU, &
-!      (x(3,iproj) - xcom(3)) / AU, &
-!      (v(1,iproj) - vcom(1)) / AU * DAY, &
-!      (v(2,iproj) - vcom(2)) / AU * DAY, &
-!      (v(3,iproj) - vcom(3)) / AU * DAY, &
-!      m(iproj) / MSUN * 1d7
-! 123 format (2x,a,2x,3(1x,f10.7),2x,3(1x,f8.6),3x,f8.4)
-!
 ! Masses and velocities of the remnant(s)
     m(itarg) = m1
     x(:,itarg) = xcom(:)
@@ -2981,7 +2972,7 @@
       x(:,iproj) = -x(:,iproj)
       v(:,iproj) = -v(:,iproj)
       status(iproj) = 'dead '
-    end if    
+    end if
 !
     mxsum(:) = mxsum(:)  +  m(itarg) * x(:,itarg)  +  m(iproj) * x(:,iproj)
     mvsum(:) = mvsum(:)  +  m(itarg) * v(:,itarg)  +  m(iproj) * v(:,iproj)
@@ -3026,33 +3017,7 @@
 !
 ! Calculate energy loss due to the collision
     denergy = denergy  +  (en0  -  en1)
-!
-!    write (23,*)
-!    write (23,*) 'Final bodies'
-!    write (23,123) name(itarg), (x(1,itarg) - xcom(1)) / AU, &
-!      (x(2,itarg) - xcom(2)) / AU, &
-!      (x(3,itarg) - xcom(3)) / AU, &
-!      (v(1,itarg) - vcom(1)) / AU * DAY, &
-!      (v(2,itarg) - vcom(2)) / AU * DAY, &
-!      (v(3,itarg) - vcom(3)) / AU * DAY, &
-!      m(itarg) / MSUN * 1d7
-!    write (23,123) name(iproj), (x(1,iproj) - xcom(1)) / AU, &
-!      (x(2,iproj) - xcom(2)) / AU, &
-!      (x(3,iproj) - xcom(3)) / AU, &
-!      (v(1,iproj) - vcom(1)) / AU * DAY, &
-!      (v(2,iproj) - vcom(2)) / AU * DAY, &
-!      (v(3,iproj) - vcom(3)) / AU * DAY, &
-!      m(iproj) / MSUN * 1d7
-!    do ifrag = nold + 1, nold + nnew
-!      write (23,123) name(ifrag), (x(1,ifrag) - xcom(1)) / AU, &
-!        (x(2,ifrag) - xcom(2)) / AU, &
-!        (x(3,ifrag) - xcom(3)) / AU, &
-!        (v(1,ifrag) - vcom(1)) / AU * DAY, &
-!        (v(2,ifrag) - vcom(2)) / AU * DAY, &
-!        (v(3,ifrag) - vcom(3)) / AU * DAY, &
-!        m(ifrag) / MSUN * 1d7
-!    end do
-!
+
 ! Add entries in the list of particle pairs within critical distance
     if (nnew > 0) write (23,*)
 !
@@ -3144,9 +3109,9 @@
     temp = modify_qstar_roche_radius(qstar, rho, planet_star_separation)
     qstar = temp
 ! Mass of escaping projectile
-    if (qstar.lt.0.0) then
-       write(*,*) "  negative qstar: ", qstar
-    endif
+    !if (qstar.lt.0.0) then
+    !   write(*,*) "  negative qstar: ", qstar
+    !endif
     calc_largest_remnant = calc_remnant_mass (mtarg,mproj,q,qstar)
 !
     end function calc_largest_remnant
@@ -4010,7 +3975,7 @@
                 rhobs,rcebs,radbs,rcritbs,statusbs,indexbs,namebs)
               flag_collision = .true.
             end do
-            write(*,*) "Number of big bodies at time ", t/YEAR, " years is: ", nbig !Use t here instead of time to get time of collision
+            !write(*,*) "Number of big bodies at time ", t/YEAR, " years is: ", nbig !Use t here instead of time to get time of collision
             call how_many_bodies_inside_andoutside_roche_radius(n,nbig,t/YEAR,x)
           end if
 !
@@ -4054,29 +4019,30 @@
       v(:,1:n) = v(:,1:n)  +  dtby2 * a(:,1:n)
       time = time  +  dt
 
+!      if (time/YEAR> 9.72813141683673692E-002.and.time/YEAR< 0.12860780287472727) then
+!         write(*,*) "-------------------"
+!         write(*,*) "time: ", time/YEAR
+!         write(*,*) name(88)
+!         write(*,*) x(:,88)
+!         write(*,*) v(:,88)
+!         write(*,*) m(88)
+!         write(*,*) name(87)
+!         write(*,*) x(:,87)
+!         write(*,*) v(:,87)
+!         write(*,*) m(87)
+!         write(*,*) "----"
+!         write(*,*) name(56)
+!         write(*,*) x(:,56)
+!         write(*,*) v(:,56)
+!         write(*,*) m(56)
+!         write(*,*) name(54)
+!         write(*,*) x(:,54)
+!         write(*,*) v(:,54)
+!         write(*,*) m(54)
+!         write(*,*) "--endeth-----"
+         
+!      endif
 
-      if (time/YEAR> 9.72813141683673692E-002.and.time/YEAR< 0.12860780287472727) then
-         write(*,*) "-------------------"
-         write(*,*) "time: ", time/YEAR
-         write(*,*) name(87)
-         write(*,*) x(:,87)
-         write(*,*) v(:,87)
-         write(*,*) m(87)
-         write(*,*) name(86)
-         write(*,*) x(:,86)
-         write(*,*) v(:,86)
-         write(*,*) m(86)
-         write(*,*) "----"
-         write(*,*) name(55)
-         write(*,*) x(:,55)
-         write(*,*) v(:,55)
-         write(*,*) m(55)
-         write(*,*) name(53)
-         write(*,*) x(:,53)
-         write(*,*) v(:,53)
-         write(*,*) m(53)
-         write(*,*) "--endeth-----"
-      endif
 
 !
 ! Remove any particles lost during collisions
@@ -4085,9 +4051,10 @@
         call output_codes (n,nbig,status,index,name,m)
         rcrit(1:n) = calc_rcrit  (dt,n,m,x,v)
         flag_accel = .true.
-        !write(*,*) "Number of big bodies at time ", t/YEAR, " years is: ", nbig !Use t here instead of time to get time of collision
-        !call how_many_bodies_inside_andoutside_roche_radius(n,nbig,t/YEAR,x)
-     endif
+        write(*,*) "Number of big bodies at time ", t/YEAR, " years is: ", nbig !Use t here instead of time to get time of collision
+        call how_many_bodies_inside_andoutside_roche_radius(n,nbig,t/YEAR,x)
+
+      end if
 !
 ! Remove particles far from the central body, update close encounter limits
       if (abs(time - tfun) >= dtfun) then
@@ -4613,6 +4580,10 @@
     m(iproj) = ZERO;             x(:,iproj) = -x(:,iproj)
     v(:,iproj) = -v(:,iproj);    s(:,iproj) = ZERO
     status(iproj) = 'dead '
+
+! Print out what the remnant mass is
+    write(23,'(3a,es11.4)') '   Remnant:  ',name(itarg), '  m=', msum / MSUN
+
 !
     end subroutine merge_bodies
 !==============================================================================
@@ -7145,10 +7116,10 @@
         ! note 11.71875 is 2.5^3 * 3/4
         ! note 3.533 is 1.5231^3
         temp = 1.0_R8 - 3.533_R8 * mcen / (rho * planet_star_separation**3)
-        if (temp < ZERO) then
-           write(*,*) "   qstar will be negative, temp value is: ",temp
-           write(*,*) "   sep:  ", planet_star_separation
-        end if
+        !if (temp < ZERO) then
+        !   write(*,*) "   qstar will be negative, temp value is: ",temp
+        !   write(*,*) "   sep:  ", planet_star_separation
+        !end if
 
         modify_qstar_roche_radius = qstar_orig * temp
 
