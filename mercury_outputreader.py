@@ -141,8 +141,8 @@ def aei_aggregator(path_="./",just_original_bodies=False,which_bodies=None):
         #filelist = [item in filelist if 'F' not in item]
         filelist[:], body_names[:] = zip(*((x, y) for (x, y) in zip(filelist, body_names) if 'F' not in x))
     if which_bodies != None:
-        filelist[:], body_names[:] = zip(*((x, y) for (x, y) in zip(filelist, body_names) if any(word in x for word in which_bodies) ) )
-        
+        print which_bodies
+        filelist[:], body_names[:] = zip(*((x, y) for (x, y) in zip(filelist, body_names) if any(word == y for word in which_bodies) ) ) #if any(word in x for word in which_bodies) ) )
     
     files_with_no_info = 0
     aei_list = []
