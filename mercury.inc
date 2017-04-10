@@ -29,7 +29,7 @@ c
       parameter (CMAX = 50)
       parameter (NMESS = 200)
       parameter (HUGE = 9.9d29)
-      parameter (NFILES = 50)
+      parameter (NFILES = 1000)
       parameter (cstar = 5.0d0)
       parameter (mubar = 0.37d0)
       parameter (rho1_cgs = 1.0d0)

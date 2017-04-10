@@ -33,6 +33,12 @@ mercury7_multcollisioncounter
 mercury7_multcollisioncounter_nocondor
 mercury7_removenamereducer
 mercury7_nocondor_removenamereducer
+mercury7_nocondor_roche1.0
+mercury7_nocondor_roche1.1
+mercury7_roche1.0
+mercury7_roche1.1
+mercury7_test
+mercury7_test2
 close6
 frag_f90
 *~

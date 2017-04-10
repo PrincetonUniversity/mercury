@@ -25,25 +25,30 @@ def plot_average_ecc_func_time(time_values_to_use,ecc_values_to_use,num_body_fun
     """
 
     avg_ecc = []
+    max_ecc = []
     for i in range(len(ecc_values_to_use)):
+        max_ecc.append(max(ecc_values_to_use[i]) )
         total = np.sum(ecc_values_to_use[i])
         avg_ecc.append(total/float(len(ecc_values_to_use[i])) )
+
 
     fig = pp.figure()
 
     ax = fig.add_subplot(111)
     ax2 = ax.twinx()
 
-    ax.plot(time_values_to_use,avg_ecc,label='<e>',color='red')
+    line1 = ax.plot(time_values_to_use,avg_ecc,label='<e>',lw=2.2,color='red')
+    line2 = ax.plot(time_values_to_use,max_ecc,label='max e',lw=0.5,color='cyan')
 
     if second_time == None:
         second_time = time_values_to_use
-    ax2.step(second_time,num_body_func_time,where='post',lw=2.2,label='number')
+    line3 = ax2.step(second_time,num_body_func_time,where='post',lw=2.2,label='numbodies',color='blue')
     ax.set_xscale('log')
     ax.set_xlabel('Time (years)')
-    ax.set_ylabel('Avg. ecc. of final planets')
+    ax.set_ylabel('ecc. of final planets')
     ax2.set_ylabel('Num bodies outside Roche')
 
-    #fig.legend(loc='best')
+    lines_for_legend = line1 + line2 + line3
+    fig.legend(lines_for_legend, [l.get_label() for l in lines_for_legend], loc='best')
 
     return fig
