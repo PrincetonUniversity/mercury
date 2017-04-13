@@ -5,6 +5,7 @@
 
 import numpy as np
 import matplotlib.pyplot as pp
+import matplotlib.markers as markers
 import json
 import os
 import sys
@@ -15,7 +16,27 @@ if not path in sys.path:
 import mercury_outputreader as mercury
 import mercury_output_looker_ater as looker_ater
 
-def plot_average_ecc_func_time(time_values_to_use,ecc_values_to_use,num_body_func_time,second_time=None):
+
+def close_encounter_getter(list_of_bodies,threshold=0):
+    """ This will extract all the close encounters from the bodies in list_of_bodies, 
+    then return those that are closer than the given threshold (in AU)
+    """
+    
+    close_encounters = []
+
+    for body in list_of_bodies:
+        with open(body + ".clo",'r') as f:
+            lines = f.readlines()
+            for line in lines:
+                if line[0] != "#":
+                    splitted = line.split()
+                    close_encounters.append( [float(splitted[0]), float(splitted[2])] )
+
+    encounters, times = zip(*sorted(zip([item[1] for item in close_encounters], [item[0] for item in close_encounters])))
+    return times[:18]
+
+
+def plot_average_ecc_func_time(time_values_to_use,ecc_values_to_use,num_body_func_time,second_time=None,ce_to_plot=None):
     """This will plot the average ecc. as a function of time, with the 
     number of bodies also as a function to time, for comparison
 
@@ -37,7 +58,7 @@ def plot_average_ecc_func_time(time_values_to_use,ecc_values_to_use,num_body_fun
     ax = fig.add_subplot(111)
     ax2 = ax.twinx()
 
-    line1 = ax.plot(time_values_to_use,avg_ecc,label='<e>',lw=2.2,color='red')
+    line1 = ax.plot(time_values_to_use,avg_ecc,label='<e>',lw=0.5,color='red')
     line2 = ax.plot(time_values_to_use,max_ecc,label='max e',lw=0.5,color='cyan')
 
     if second_time == None:
@@ -51,4 +72,31 @@ def plot_average_ecc_func_time(time_values_to_use,ecc_values_to_use,num_body_fun
     lines_for_legend = line1 + line2 + line3
     fig.legend(lines_for_legend, [l.get_label() for l in lines_for_legend], loc='best')
 
+    if ce_to_plot != None:
+        ax.scatter( ce_to_plot, [0.002]*len(ce_to_plot), marker=markers.CARETUP,color='red')
+
+    ax.set_ylim(bottom=0)
     return fig
+
+
+def plot_ecc_vector_func_time(time, aei_functime):
+    """ This plots the mass-weighted eccentricity vector as a function of time"""
+
+    ecc_vec = []
+
+    for i in range(len(aei_functime)):
+        temp = 0.
+        for j in range(len(aei_functime[i].mass)):
+            temp += aei_functime[i].mass[j] * aei_functime[i].e[j]
+        ecc_vec.append(temp)
+    
+    fig = pp.figure()
+    ax  = fig.add_subplot(111)
+
+    ax.plot(time, ecc_vec)
+    ax.set_xlabel("Time (years)")
+    ax.set_ylabel("Ecc vector magnitude")
+    ax.set_xscale('log')
+
+    return fig
+    
