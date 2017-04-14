@@ -82,6 +82,13 @@ def plot_average_ecc_func_time(time_values_to_use,ecc_values_to_use,num_body_fun
 def plot_ecc_vector_func_time(time, aei_functime):
     """ This plots the mass-weighted eccentricity vector as a function of time"""
 
+    avg_ecc = []
+    eccentricities = [x.e for x in aei_functime]
+    for i in range(len(eccentricities)):
+        total = np.sum(eccentricities[i])
+        avg_ecc.append(total/float(len(eccentricities[i])) )
+
+
     ecc_vec = []
 
     for i in range(len(aei_functime)):
@@ -99,11 +106,20 @@ def plot_ecc_vector_func_time(time, aei_functime):
     
     fig = pp.figure()
     ax  = fig.add_subplot(111)
+    ax2 = ax.twinx()
 
-    ax.plot(time, ecc_vec)
+    line1 = ax.plot(time, ecc_vec, label = "Mag ecc vec")
+    line2 = ax2.plot(time, avg_ecc, lw=.35, label = "avg ecc", color='red')
     ax.set_xlabel("Time (years)")
     ax.set_ylabel("Ecc vector magnitude")
     ax.set_xscale('log')
+
+    ax2.set_ylim((0,2.2*np.max(avg_ecc)))
+    ax2.set_ylabel("Average eccentricity")
+    ax2.set_xlim(right=3e5)
+
+    lines_for_legend = line1 + line2
+    fig.legend(lines_for_legend, [l.get_label() for l in lines_for_legend], loc='upper left')
 
     return fig
     
