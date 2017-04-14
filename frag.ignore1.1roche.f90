@@ -4137,7 +4137,7 @@
            gmsum = G * (mcen  +  m(ll))
 !
            smaxis = gmsum * r / (2.0_R8 * gmsum  -  r * v2)
-           if (smaxis > 1.1_R8 *  0.0088781786_R8 * AU) status(ll) = 'dead '
+           if (smaxis <= 1.1_R8 *  0.0088781786_R8 * AU) status(ll) = 'dead '
         end do
 !
         call remove_dead_bodies( n,nbig,m,x,v,s,ngf,rho,rce_hill,rad,status,index,name)
