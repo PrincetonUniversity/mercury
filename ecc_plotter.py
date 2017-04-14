@@ -85,10 +85,17 @@ def plot_ecc_vector_func_time(time, aei_functime):
     ecc_vec = []
 
     for i in range(len(aei_functime)):
-        temp = 0.
+        sum_massweighted_eccvector_x = 0.
+        sum_massweighted_eccvector_y = 0.
+        sum_mass = 0.
         for j in range(len(aei_functime[i].mass)):
-            temp += aei_functime[i].mass[j] * aei_functime[i].e[j]
-        ecc_vec.append(temp)
+            sum_mass += aei_functime[i].mass[j] 
+            sum_massweighted_eccvector_x += aei_functime[i].mass[j] * aei_functime[i].e[j] * np.cos(np.deg2rad(aei_functime[i].pomega[j]))
+            sum_massweighted_eccvector_y += aei_functime[i].mass[j] * aei_functime[i].e[j] * np.sin(np.deg2rad(aei_functime[i].pomega[j]))
+
+        vector_magnitude = np.sqrt(sum_massweighted_eccvector_x * sum_massweighted_eccvector_x + 
+                                   sum_massweighted_eccvector_y * sum_massweighted_eccvector_y)
+        ecc_vec.append(vector_magnitude/sum_mass)
     
     fig = pp.figure()
     ax  = fig.add_subplot(111)

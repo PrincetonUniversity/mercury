@@ -43,6 +43,16 @@ class aei_info:
         self.e    = e_
         self.i    = i_
         self.mass = mass_
+        self.pomega = None
+
+    def add_pomega(self,pomega_):
+        try:
+            assert( len(self.time) == len(pomega_))
+        except TypeError:
+            assert( isinstance(pomega_,float))
+            pomega_ = [pomega_]
+        
+        self.pomega = pomega_
 
 
 class aei_singletime:
@@ -56,6 +66,7 @@ class aei_singletime:
         self.e     = e_
         self.i     = i_
         self.mass  = mass_
+        self.pomega = None
 
 
 class collision_type:
@@ -125,7 +136,7 @@ class numberofbodies_outsideroche_functime:
         self.number_outside_roche = number_outside_roche_
 
 
-def aei_aggregator(path_="./",just_original_bodies=False,which_bodies=None):
+def aei_aggregator(path_="./",just_original_bodies=False,which_bodies=None,pomega=False):
     """This reads in all the *.aei files in the given path
     and returns a tuple, the first element of which is the names of all the bodies
     and the second element of which is a list of aei_info instances.
@@ -153,6 +164,10 @@ def aei_aggregator(path_="./",just_original_bodies=False,which_bodies=None):
             if temp == False:
                 files_with_no_info += 1
             else:
+                if pomega:
+                    temp2 = aei_file_reader_justpomega(filelist[j],body_names[j])
+                    if temp2 != False:
+                        temp.add_pomega(temp2)
                 aei_list.append(temp)
 
     if len(filelist) != len(aei_list):
@@ -175,6 +190,17 @@ def aei_file_reader(filename,bodyname="blank"):
     return toreturn
 
 
+def aei_file_reader_justpomega(filename,bodyname="blank"):
+    """This reads in a specified *.aei file and returns an
+    instance of the aei_info class, corresponding to the object"""
+    temp = np.loadtxt(filename,unpack=True)
+    try:
+        toreturn = temp[8].tolist()
+    except IndexError:
+        toreturn = False #In this case, there is no information on the object in the file, and we return false
+    return toreturn
+
+
 def aei_func_time(aei_info_list):
     """This function takes a list of aei_info objects and returns,
     as a function of time, the aei's of all objects at the corresponding time.
@@ -189,6 +215,7 @@ def aei_func_time(aei_info_list):
 
 
     time_list = aei_info_list[i_with_maxlength].time
+    pomega_available = not aei_info_list[i_with_maxlength].pomega == None # If there are pomega values available to collect
     aei_list_full = []
 
     for i in range(len(time_list)):
@@ -198,6 +225,7 @@ def aei_func_time(aei_info_list):
         e_just_thistime = []
         i_just_thistime = []
         mass_just_thistime = []
+        pomega_just_thistime = []
         for j in range(len(aei_info_list)):
             try:
                 indextouse = aei_info_list[j].time.index(time_lookingat)
@@ -206,10 +234,15 @@ def aei_func_time(aei_info_list):
                 e_just_thistime.append(aei_info_list[j].e[indextouse])
                 i_just_thistime.append(aei_info_list[j].i[indextouse])
                 mass_just_thistime.append(aei_info_list[j].mass[indextouse]) 
+                if pomega_available:
+                    pomega_just_thistime.append(aei_info_list[j].pomega[indextouse]) 
             except ValueError:
                 continue
 
-        aei_list_full.append(aei_singletime(name_just_thistime,a_just_thistime, e_just_thistime, i_just_thistime, mass_just_thistime) )
+        to_append = aei_singletime(name_just_thistime,a_just_thistime, e_just_thistime, i_just_thistime, mass_just_thistime)
+        if pomega_available:
+            to_append.pomega = pomega_just_thistime
+        aei_list_full.append(to_append)
 
     number_of_objects = [ len(aei_list_full[k].a) for k in range(len(aei_list_full)) ]
 
