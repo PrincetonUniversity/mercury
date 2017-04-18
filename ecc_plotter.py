@@ -75,6 +75,7 @@ def plot_average_ecc_func_time(time_values_to_use,ecc_values_to_use,num_body_fun
     if ce_to_plot != None:
         ax.scatter( ce_to_plot, [0.002]*len(ce_to_plot), marker=markers.CARETUP,color='red')
 
+    #ax.plot((1.5e4,1.5e4),(0,0.05))
     ax.set_ylim(bottom=0)
     return fig
 
